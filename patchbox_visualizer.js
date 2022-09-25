@@ -7,12 +7,20 @@ const path = require('path');
 const tween = require('./util/tween');
 const Tone = require('tone');
 const createTouchListener = require('touches');
-const { Console } = require('console');
+const { Console, debug } = require('console');
 
 //const serverURL = 'ws://192.168.50.125:3000'; // my laptop
-const serverURL = 'ws://localhost:3000'; 
+//const serverURL = 'ws://localhost:3000';
+const serverURL = 'ws://192.168.50.241:3000';
 //const serverURL = 'ws://192.168.50.237:3000'; // my pc
 //const serverURL = 'wss://evergreen-awake-wing.glitch.me'; 
+
+// HACK (or maybe not?)
+// if localhost, send data to server.
+// if IP then listen to data from server
+let sendMode = window.location.hostname == "localhost";
+//sendMode = false;
+console.log("App is in " + (sendMode ? "send" : "receive") + " mode");
 
 let socket;
 
@@ -21,19 +29,21 @@ let waveformTarget = [];
 let analyserData = [];
 let interval;
 
-
 const waveformResolution = 512;
 let waveformTexture = {};
 
-function transmitWaveform() {
+function transmitWaveform()
+{
   // if we are connected, send the waveform data
-  if (socket.readyState === WebSocket.OPEN) {
+  if (socket.readyState === WebSocket.OPEN)
+  {
     // send waveformTargets[0] as a float array
     // turn waveformTarget[0] to a float32 array
     let float32Array = new Float32Array(analyserData);
     socket.send(float32Array.buffer);
     //socket.send(JSON.stringify(waveformTargets));
-  } else {
+  } else
+  {
     console.log('not connected');
   }
 }
@@ -48,18 +58,20 @@ function initShaderGlobals(regl)
   });
 }
 
-function initTone() {
+function initTone()
+{
   let toneSplit = new Tone.Split();
   let toneMic = new Tone.UserMedia().connect(toneSplit);
   let toneWaveform = new Tone.Waveform(waveformResolution);
   toneMic.open();
 
-  toneSplit.connect(toneWaveform,0,0);
+  toneSplit.connect(toneWaveform, 0, 0);
   waveformTarget = new Float32Array(waveformResolution);
   analyserData = new Float32Array(waveformResolution);
 
   const fps = 60;
-  interval = setInterval(() => {
+  interval = setInterval(() =>
+  {
     waveformTarget = toneWaveform.getValue();
   },
     (1 / fps) * 1000);
@@ -92,7 +104,8 @@ function updateWaveformTexture(deltaTime)
     analyserData = waveformTarget;
   }
 
-  if (waveformTarget.length != waveformResolution) {
+  if (waveformTarget.length != waveformResolution)
+  {
     console.log("waveformTarget.length != waveformResolution");
     return;
   }
@@ -128,29 +141,17 @@ function startConnection()
 
   // Listen for messages
   socket.addEventListener('message', function (event)
-  { 
-
-    // for now, don't listen to anything
-    // eventually, maybe we change the state of the webapp 
-    // based on some input coming from MODEP?
-    /*
-    // check if the data is of type bytes
-    if (event.data instanceof ArrayBuffer)
+  {
+    if (!sendMode)
     {
-      // convert the data to a float32 array
-      let float32Array = new Float32Array(event.data);
-      waveformTarget = float32Array;
-    } else // if it's not bytes, it's a string
-    { 
-      if (event.data == "beat")
+      // check if the data is of type bytes
+      if (event.data instanceof ArrayBuffer)
       {
-        beatPulse = 1;
-      } else if (event.data == "hit")
-      {
-        hitPulse = 1;
+        // convert the data to a float32 array
+        let float32Array = new Float32Array(event.data);
+        waveformTarget = float32Array;
       }
     }
-     */
   });
 }
 
@@ -171,7 +172,9 @@ const sketch = ({ canvas, gl, update, render, pause }) =>
   const touches = createTouchListener(canvas).on('start', onTouch);
 
   initShaderGlobals(regl);
-  initTone();
+  if (sendMode) {
+    initTone();
+  }
   startConnection();
 
   const drawQuad = regl({
@@ -220,7 +223,10 @@ const sketch = ({ canvas, gl, update, render, pause }) =>
 
       // refresh the waveform texture
       updateWaveformTexture(deltaTime);
-      transmitWaveform();
+      if (sendMode)
+      {
+        transmitWaveform();
+      }
 
       drawQuad({
         iTime: time,
