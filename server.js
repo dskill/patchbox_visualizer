@@ -51,6 +51,7 @@ wss.on('connection', function(ws) {
         client.send(data);
       } else {
         client.send(Array.from(data));
+        console.log('binary data: ' + Array.from(data));
       }
     });
   });
