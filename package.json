@@ -1,0 +1,33 @@
+{
+  "name": "audio-sketches",
+  "version": "1.0.0",
+  "description": "",
+  "main": "test.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "canvas-sketch": "^0.7.6",
+    "canvas-sketch-cli": "^1.11.20",
+    "canvas-sketch-util": "^1.10.0",
+    "dat.gui": "^0.7.9",
+    "eases": "^1.0.8",
+    "express": "^4.18.1",
+    "glsl-aastep": "^1.0.1",
+    "glsl-hsl2rgb": "^1.1.0",
+    "glsl-noise": "0.0.0",
+    "lerp": "^1.0.3",
+    "load-asset": "^1.2.0",
+    "midi": "^2.0.0",
+    "nice-color-palettes": "^3.0.0",
+    "p5": "^1.4.2",
+    "primitive-quad": "^2.0.0",
+    "regl": "^2.1.0",
+    "spotify-web-api-js": "^1.5.2",
+    "tone": "^14.7.77",
+    "touches": "^1.2.2"
+  }
+}
