@@ -53,6 +53,7 @@ function initTone() {
   let toneMic = new Tone.UserMedia().connect(toneSplit);
   let toneWaveform = new Tone.Waveform(waveformResolution);
   toneMic.open();
+
   toneSplit.connect(toneWaveform,0,0);
   waveformTarget = new Float32Array(waveformResolution);
   analyserData = new Float32Array(waveformResolution);
@@ -155,7 +156,7 @@ function startConnection()
 
 function onTouch(ev, clientPosition)
 {
-  console.log(ev);
+  Tone.start();
 }
 
 // renderer & canvas-sketch setup  //
