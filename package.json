@@ -23,6 +23,7 @@
     "load-asset": "^1.2.0",
     "midi": "^2.0.0",
     "nice-color-palettes": "^3.0.0",
+    "osc-js": "^2.3.2",
     "p5": "^1.4.2",
     "primitive-quad": "^2.0.0",
     "regl": "^2.1.0",

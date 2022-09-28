@@ -8,6 +8,50 @@ const tween = require('./util/tween');
 const Tone = require('tone');
 const createTouchListener = require('touches');
 const { Console, debug } = require('console');
+const OSC = require('osc-js');
+
+
+const options = {
+  udpServer: {
+    port: 9912
+  }
+}
+
+const osc = new OSC(options)
+
+osc.on('*', message => {
+  console.log(message.args)
+  let arg = message.args;
+  // check if it's a uint8array
+  console.log(arg);
+  if (arg[0] instanceof Uint8Array)
+  {
+    //let float32Array = new Float32Array(arg[0], 4);
+    let float32Array = bytesToFloatArray(arg[0]);
+    console.log(float32Array);
+    console.log(float32Array.length);
+
+   // waveformTarget = float32Array;
+  }
+
+})
+
+osc.on('/{foo,bar}/*/param', message => {
+  console.log(message.args)
+})
+
+osc.on('open', () => {
+  const message = new OSC.Message('/test', 12.221, 'hello')
+  osc.send(message)
+})
+ 
+osc.open()
+
+function bytesToFloatArray(bytes) {
+  return new Float32Array(bytes.buffer, bytes.byteOffset, bytes.byteLength/Float32Array.BYTES_PER_ELEMENT);
+}
+
+
 
 //const serverURL = 'ws://192.168.50.125:3000'; // my laptop
 //const serverURL = 'ws://localhost:3000';
@@ -175,7 +219,7 @@ const sketch = ({ canvas, gl, update, render, pause }) =>
   if (sendMode) {
     initTone();
   }
-  startConnection();
+  //startConnection();
 
   const drawQuad = regl({
     // Fragment & Vertex shaders 
