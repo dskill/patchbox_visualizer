@@ -1,15 +1,6 @@
+
 ~o = NetAddr.new("127.0.0.1", 9912);    // create the NetAddr
-~o.sendMsg("/hello", "there");    // send the application the message "hello" with the parameter "there"
-
-//this works
-~msg =  [\n_sets, 2.231, 0.2, 0.233];
-~o.sendMsg(*~msg);
-
-// this ends up as a weird uint8???
-x =  [1.11, 2.22,3.33];
-x.asFloatArray.postln;
-~o.sendMsg(\sand, x);
-
+~o.sendMsg("/hello", "there");    // send the application the message "hello" with the
 s.boot;
 (
 var relay_buffer0 = Buffer.alloc(s, 512);
@@ -27,7 +18,7 @@ var floatArrayToList = {
 	var sigB = SoundIn.ar(0);
 	var sigC =  MulAdd( Dust.ar(10000), 0.01, 0) ;
 	var sigD = MulAdd(SinOsc.ar(2000), 0.2,0);
-	var sig_reverb = FreeVerb.ar(sigB, 1.0);
+	var sig_reverb = FreeVerb.ar(sigB, 1.0, 0.2, 0.1, 5.0);
 	var sig = sigB; //sigA + sigC; //sigA + sigB; //{Mix.new([sigA,sigB])};
 	var phase = Phasor.ar(0, BufRateScale.kr(relay_buffer0), 0, BufFrames.kr(relay_buffer0));
 	//var phase_reset_trig = Trig.ar(Slope.ar(phase) < 0);
@@ -55,10 +46,20 @@ OSCdef(\k, {
 		~o.sendMsg(\waveform1, *floatArrayToList.value(b));
 
     });
-
-
 }, '/buffer_refresh');
 )
+
+
+// OTHER STUFF
+//this works
+/*
+~msg =  [\n_sets, 2.231, 0.2, 0.233];
+~o.sendMsg(*~msg);
+
+// this ends up as a weird uint8???
+x =  [1.11, 2.22,3.33];
+x.asFloatArray.postln;
+~o.sendMsg(\sand, x);
 
 (
 OSCdef(\listener, {|msg|
@@ -83,14 +84,4 @@ o.postln
 
 ~farr = FloatArray[13.37, 3.3333333, 123.456];
 ~farr.asArray.postln
-
-(
-var arr = FloatArray[13.37, 3.3333333, 123.456];
-var list = List.new(arr.size);
-for (0, arr.size-1, { arg i; list.add(arr[i]) });
-list.postln;
-//o = NetAddr.new("127.0.0.1", 6969);
-~o.sendMsg("/LoadAudioData", *list);
-)
-
-
+*/
