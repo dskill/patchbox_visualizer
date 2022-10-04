@@ -34,7 +34,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     float waveform0 = -texture2D( iWaveformTexture0, 1.0 - uvTrue).r;	
 	float waveform1 = -texture2D( iWaveformTexture1, 1.0 - uvTrue).r;	
 	
-	float waveformUV = uv.y + waveform0 * 1.0;
+	float waveformUV = uv.y + waveform0 * 1.0 - .25;
     vec3 color = vec3(0.0); 
      
 	float pinch = 1. - abs(uvTrue.x - .5)*2.;
@@ -44,10 +44,10 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 	color.b = 0.7 * pow(smoothstep(0.6*pinch,.001*pinch, abs(waveformUV + .005)),4.);
 
 
-	waveformUV = uv.y + waveform1 * 1.0;
-    color.r += .0 * pow(smoothstep(0.05*pinch,.001*pinch, abs(waveformUV)),4.);
-	color.g += .5 * pow(smoothstep(0.2*pinch,.001*pinch, abs(waveformUV - .005)),4.);
-	color.b += 0.0 * pow(smoothstep(0.6*pinch,.001*pinch, abs(waveformUV + .005)),4.); 
+	waveformUV = uv.y + waveform1 * 1.0 + .25;
+    color.r += 1.2 * pow(smoothstep(0.05*pinch,.001*pinch, abs(waveformUV)),4.);
+	color.g += .8 * pow(smoothstep(0.2*pinch,.001*pinch, abs(waveformUV - .005)),4.);
+	color.b += 0.4 * pow(smoothstep(0.6*pinch,.001*pinch, abs(waveformUV + .005)),4.); 
 
 	// beat pulse vignette
 	/*

@@ -13,16 +13,16 @@ const OSC = require('osc-js');
 
 //const serverURL = 'ws://192.168.50.125:3000'; // my laptop
 //const serverURL = 'ws://localhost:3000';
-const serverURL = 'ws://192.168.50.241:3000';
+//const serverURL = 'ws://192.168.50.241:3000';
 //const serverURL = 'ws://192.168.50.237:3000'; // my pc
 //const serverURL = 'wss://evergreen-awake-wing.glitch.me'; 
 
 // HACK (or maybe not?)
 // if localhost, send data to server.
 // if IP then listen to data from server
-let sendMode = window.location.hostname == "localhost";
-sendMode = false;
-console.log("App is in " + (sendMode ? "send" : "receive") + " mode");
+//let sendMode = false; //window.location.hostname == "localhost";
+//sendMode = false;
+//console.log("App is in " + (sendMode ? "send" : "receive") + " mode");
 
 let socket;
 let interval;
@@ -35,13 +35,8 @@ let waveformArray0 = new Float32Array(waveformResolution);
 let waveformArray1 = new Float32Array(waveformResolution);
 
 // START OSC STUFF
-const options = {
-  udpServer: {
-    port: 9912
-  }
-}
 
-const osc = new OSC(options)
+const osc = new OSC()
 
 osc.on('*', message =>
 {
@@ -68,25 +63,14 @@ osc.on('open', () =>
   osc.send(message)
 })
 
-osc.open()
+// completely confused about which of these options are relevant
+// keep these in sync with the server, maybe?
+const options = {
+     host: '192.168.50.125',    // @param {string} Hostname of WebSocket server
+     port: 8080           // @param {number} Port of WebSocket server
+ }
+osc.open( { plugin: new OSC.WebsocketClientPlugin(options) })
 // END OSC STUFF
-
-// unused
-function transmitWaveform()
-{
-  // if we are connected, send the waveform data
-  if (socket.readyState === WebSocket.OPEN)
-  {
-    // send waveformArrays[0] as a float array
-    // turn waveformArray[0] to a float32 array
-    let float32Array = new Float32Array(waveformArray0);
-    socket.send(float32Array.buffer);
-    //socket.send(JSON.stringify(waveformArrays));
-  } else
-  {
-    console.log('not connected');
-  }
-}
 
 function initShaderGlobals(regl)
 {
@@ -179,16 +163,15 @@ function startConnection()
   // Listen for messages
   socket.addEventListener('message', function (event)
   {
-    if (!sendMode)
+
+    // check if the data is of type bytes
+    if (event.data instanceof ArrayBuffer)
     {
-      // check if the data is of type bytes
-      if (event.data instanceof ArrayBuffer)
-      {
-        // convert the data to a float32 array
-        let float32Array = new Float32Array(event.data);
-        waveformArray0 = float32Array;
-      }
+      // convert the data to a float32 array
+      let float32Array = new Float32Array(event.data);
+      waveformArray0 = float32Array;
     }
+
   });
 }
 
@@ -209,10 +192,6 @@ const sketch = ({ canvas, gl, update, render, pause }) =>
   const touches = createTouchListener(canvas).on('start', onTouch);
 
   initShaderGlobals(regl);
-  if (sendMode)
-  {
-    initTone();
-  }
   //startConnection();
 
   const drawQuad = regl({
@@ -262,12 +241,6 @@ const sketch = ({ canvas, gl, update, render, pause }) =>
 
       // refresh the waveform texture
       updateWaveformTexture(deltaTime);
-
-      if (sendMode)
-      {
-        transmitWaveform();
-      }
-
       drawQuad({
         iTime: time,
         time: time,

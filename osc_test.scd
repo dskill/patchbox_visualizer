@@ -27,7 +27,7 @@ var floatArrayToList = {
 	var sigB = SoundIn.ar(0);
 	var sigC =  MulAdd( Dust.ar(10000), 0.01, 0) ;
 	var sigD = MulAdd(SinOsc.ar(2000), 0.2,0);
-
+	var sig_reverb = FreeVerb.ar(sigB, 1.0);
 	var sig = sigB; //sigA + sigC; //sigA + sigB; //{Mix.new([sigA,sigB])};
 	var phase = Phasor.ar(0, BufRateScale.kr(relay_buffer0), 0, BufFrames.kr(relay_buffer0));
 	//var phase_reset_trig = Trig.ar(Slope.ar(phase) < 0);
@@ -35,9 +35,9 @@ var floatArrayToList = {
 
 	 var phase_reset_trig = Impulse.ar(40);
 	BufWr.ar(sig, relay_buffer0, phase);
-	BufWr.ar(sigD, relay_buffer1, phase);
+	BufWr.ar(sig_reverb, relay_buffer1, phase);
 	SendReply.ar(phase_reset_trig, '/buffer_refresh', 1);
-	sig;
+	sig_reverb;
 }.play;
 
 OSCdef(\k, {
