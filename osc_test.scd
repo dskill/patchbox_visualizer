@@ -12,7 +12,8 @@ x.asFloatArray.postln;
 
 s.boot;
 (
-var relay_buffer = Buffer.alloc(s, 512);
+var relay_buffer0 = Buffer.alloc(s, 512);
+var relay_buffer1 = Buffer.alloc(s, 512);
 var floatArrayToList = {
 	arg arr;
 	var list = List.new(arr.size);
@@ -22,28 +23,41 @@ var floatArrayToList = {
 };
 
 {
-	var sigA = SinOsc.ar(2);
+	var sigA = MulAdd(SinOsc.ar(200), 0.1,0);
 	var sigB = SoundIn.ar(0);
-	var sigC = Dust.ar(1000);
-	var sig = sigC; //sigA + sigB; //{Mix.new([sigA,sigB])};
-	var phase = Phasor.ar(0, BufRateScale.kr(relay_buffer), 0, BufFrames.kr(relay_buffer));
-	//var phase_reset_trig = Trig.ar(Slope.ar(phase) < 0);
-	 var phase_reset_trig = Impulse.ar(40);
+	var sigC =  MulAdd( Dust.ar(10000), 0.01, 0) ;
+	var sigD = MulAdd(SinOsc.ar(2000), 0.2,0);
 
-	BufWr.ar(sig, relay_buffer, phase);
+	var sig = sigB; //sigA + sigC; //sigA + sigB; //{Mix.new([sigA,sigB])};
+	var phase = Phasor.ar(0, BufRateScale.kr(relay_buffer0), 0, BufFrames.kr(relay_buffer0));
+	//var phase_reset_trig = Trig.ar(Slope.ar(phase) < 0);
+	var phase1 = Phasor.ar(0, BufRateScale.kr(relay_buffer1), 0, BufFrames.kr(relay_buffer1));
+
+	 var phase_reset_trig = Impulse.ar(40);
+	BufWr.ar(sig, relay_buffer0, phase);
+	BufWr.ar(sigD, relay_buffer1, phase);
 	SendReply.ar(phase_reset_trig, '/buffer_refresh', 1);
 	sig;
 }.play;
 
 OSCdef(\k, {
 	// |msg|
-	relay_buffer.loadToFloatArray(action: {|b|
+	relay_buffer0.loadToFloatArray(action: {|b|
         //b.postln;
         // ~some_net_addr.send(b);
-		~o.sendMsg(\waveform, *floatArrayToList.value(b));
-    });
-}, '/buffer_refresh');
+		~o.sendMsg(\waveform0, *floatArrayToList.value(b));
 
+    });
+
+	relay_buffer1.loadToFloatArray(action: {|b|
+        //b.postln;
+        // ~some_net_addr.send(b);
+		~o.sendMsg(\waveform1, *floatArrayToList.value(b));
+
+    });
+
+
+}, '/buffer_refresh');
 )
 
 (

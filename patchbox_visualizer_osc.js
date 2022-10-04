@@ -25,72 +25,63 @@ sendMode = false;
 console.log("App is in " + (sendMode ? "send" : "receive") + " mode");
 
 let socket;
-
-let useSmoothing = false;
-let waveformTarget = [];
-let analyserData = [];
 let interval;
 
 const waveformResolution = 512;
-let waveformTexture = {};
+let waveformTexture0 = {};
+let waveformTexture1 = {};
 
+let waveformArray0 = new Float32Array(waveformResolution);
+let waveformArray1 = new Float32Array(waveformResolution);
 
-
+// START OSC STUFF
 const options = {
   udpServer: {
     port: 9912
   }
 }
 
-// START OSC STUFF
 const osc = new OSC(options)
 
-osc.on('*', message => {
+osc.on('*', message =>
+{
   let args = message.args;
   console.log("address", message.address, "message length: " + args.length);
-  
-  if (message.address == "/waveform")
+
+  if (message.address == "/waveform0")
   {
-    let waveform = args;
-    waveformTarget = waveform;
-  }
-  /*
-  if (args instanceof Array)
+    waveformArray0 = args;
+  } else if (message.address == "/waveform1")
   {
-    let float32Array = args;
-    //console.log('float32Array ' + float32Array);
-    // if the array lenght is the same as the waveform resolution, then we can use it
-    if (float32Array.length == waveformResolution)
-    {
-      waveformTarget = float32Array;
-    }
+    waveformArray1 = args;
   }
-  */
 })
 
-osc.on('/{foo,bar}/*/param', message => {
+osc.on('/{foo,bar}/*/param', message =>
+{
   console.log(message.args)
 })
 
-osc.on('open', () => {
+osc.on('open', () =>
+{
   const message = new OSC.Message('/test', 12.221, 'hello')
   osc.send(message)
 })
- 
-osc.open()
 
+osc.open()
 // END OSC STUFF
 
+// unused
 function transmitWaveform()
 {
   // if we are connected, send the waveform data
   if (socket.readyState === WebSocket.OPEN)
   {
-    // send waveformTargets[0] as a float array
-    // turn waveformTarget[0] to a float32 array
-    let float32Array = new Float32Array(analyserData);
+    // send waveformArrays[0] as a float array
+    // turn waveformArray[0] to a float32 array
+    let float32Array = new Float32Array(waveformArray0);
     socket.send(float32Array.buffer);
-    //socket.send(JSON.stringify(waveformTargets));
+    //socket.send(JSON.stringify(waveformArrays));
   } else
   {
     console.log('not connected');
@@ -100,7 +91,13 @@ function transmitWaveform()
 function initShaderGlobals(regl)
 {
   // From a flat array
-  waveformTexture = regl.texture({
+  waveformTexture0 = regl.texture({
+    shape: [waveformResolution, 1, 1],
+    format: 'luminance',
+    type: 'float32'
+  });
+
+  waveformTexture1 = regl.texture({
     shape: [waveformResolution, 1, 1],
     format: 'luminance',
     type: 'float32'
@@ -115,13 +112,13 @@ function initTone()
   toneMic.open();
 
   toneSplit.connect(toneWaveform, 0, 0);
-  waveformTarget = new Float32Array(waveformResolution);
-  analyserData = new Float32Array(waveformResolution);
+  waveformArray0 = new Float32Array(waveformResolution);
+  waveformArray1 = new Float32Array(waveformResolution);
 
   const fps = 60;
   interval = setInterval(() =>
   {
-    waveformTarget = toneWaveform.getValue();
+    waveformArray0 = toneWaveform.getValue();
   },
     (1 / fps) * 1000);
 }
@@ -134,37 +131,27 @@ function damp(a, b, lambda, dt)
 
 function updateWaveformTexture(deltaTime)
 {
-  // smooth the waveform a bit
+  if (waveformArray0.length == waveformResolution)
+  {
 
-  // TODO - figure out waveform smoothing. 
-  if (useSmoothing)
-  {
-    for (let n = 0; n < waveformResolution; n++)
-    {
-      analyserData[n] = damp(
-        analyserData[n],
-        waveformTarget[n],
-        20.0,
-        deltaTime
-      );
-    }
-  } else
-  {
-    analyserData = waveformTarget;
+    // this is probably real slow. I wonder if there's a better way?
+    waveformTexture0({
+      shape: [waveformResolution, 1, 1],
+      format: 'luminance',
+      type: 'float32',
+      data: waveformArray0
+    });
   }
 
-  if (waveformTarget.length != waveformResolution)
+  if (waveformArray1.length == waveformResolution)
   {
-    console.log("waveformTarget.length != waveformResolution");
-    return;
+    waveformTexture1({
+      shape: [waveformResolution, 1, 1],
+      format: 'luminance',
+      type: 'float32',
+      data: waveformArray1
+    });
   }
-  // this is probably real slow. I wonder if there's a better way?
-  waveformTexture({
-    shape: [waveformResolution, 1, 1],
-    format: 'luminance',
-    type: 'float32',
-    data: analyserData
-  });
 }
 
 
@@ -177,6 +164,7 @@ const settings = {
   canvas: document.querySelector('.background-canvas')
 };
 
+// web sockets currently unused
 function startConnection()
 {
   socket = new WebSocket(serverURL);
@@ -198,7 +186,7 @@ function startConnection()
       {
         // convert the data to a float32 array
         let float32Array = new Float32Array(event.data);
-        waveformTarget = float32Array;
+        waveformArray0 = float32Array;
       }
     }
   });
@@ -206,7 +194,7 @@ function startConnection()
 
 function onTouch(ev, clientPosition)
 {
-  Tone.start();
+  //Tone.start();
 }
 
 // renderer & canvas-sketch setup  //
@@ -221,14 +209,15 @@ const sketch = ({ canvas, gl, update, render, pause }) =>
   const touches = createTouchListener(canvas).on('start', onTouch);
 
   initShaderGlobals(regl);
-  if (sendMode) {
+  if (sendMode)
+  {
     initTone();
   }
   //startConnection();
 
   const drawQuad = regl({
     // Fragment & Vertex shaders 
-    frag: glslify(path.resolve(__dirname, 'assets/shaders/simple_waveform.frag')),
+    frag: glslify(path.resolve(__dirname, 'assets/shaders/multi_waveform.frag')),
     vert: glslify(path.resolve(__dirname, 'assets/shaders/default.vert')),
     // Pass down props from javascript
     uniforms: {
@@ -238,6 +227,7 @@ const sketch = ({ canvas, gl, update, render, pause }) =>
       iResolution: regl.prop('iResolution'),
       // TODO: Pack these into a single RGB Float texture
       iWaveformTexture0: regl.prop('iWaveformTexture0'),
+      iWaveformTexture1: regl.prop('iWaveformTexture1'),
     },
     // Setup transparency blending
     blend: {
@@ -272,6 +262,7 @@ const sketch = ({ canvas, gl, update, render, pause }) =>
 
       // refresh the waveform texture
       updateWaveformTexture(deltaTime);
+
       if (sendMode)
       {
         transmitWaveform();
@@ -282,7 +273,8 @@ const sketch = ({ canvas, gl, update, render, pause }) =>
         time: time,
         aspect: width / height,
         iResolution: [canvas.width, canvas.height],
-        iWaveformTexture0: waveformTexture,
+        iWaveformTexture0: waveformTexture0,
+        iWaveformTexture1: waveformTexture1
       });
 
       // Flush pending GL calls for this frame
