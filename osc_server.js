@@ -14,7 +14,7 @@ const options = {
 osc.on('*', message => {
  console.log('MESSAGE');
  console.log(message);
-  console.log(message.args)
+ console.log(message.args)
 })
 
 // sent messages frequently when socket is ready
