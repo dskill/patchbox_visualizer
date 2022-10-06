@@ -3,8 +3,8 @@
 ~o.sendMsg("/hello", "there");    // send the application the message "hello" with the
 s.boot;
 (
-var relay_buffer0 = Buffer.alloc(s, 512);
-var relay_buffer1 = Buffer.alloc(s, 512);
+var relay_buffer0 = Buffer.alloc(s, 128);
+var relay_buffer1 = Buffer.alloc(s, 128);
 var floatArrayToList = {
 	arg arr;
 	var list = List.new(arr.size);
@@ -28,7 +28,7 @@ var floatArrayToList = {
 	BufWr.ar(sig, relay_buffer0, phase);
 	BufWr.ar(sig_reverb, relay_buffer1, phase);
 	SendReply.ar(phase_reset_trig, '/buffer_refresh', 1);
-	sig_reverb;
+	sig;
 }.play;
 
 OSCdef(\k, {

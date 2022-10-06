@@ -33,7 +33,7 @@ options = {
 // listen for invoing messages
 osc.on('*', message => {
  console.log('MESSAGE');
- console.log(message);
+ //console.log(message);
 })
 
 // sent messages frequently when socket is ready
