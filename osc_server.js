@@ -32,7 +32,7 @@ options = {
   
 // listen for invoing messages
 osc.on('*', message => {
- console.log('MESSAGE');
+ //console.log('MESSAGE');
  //console.log(message);
 })
 
