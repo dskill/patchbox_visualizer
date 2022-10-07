@@ -27,7 +27,7 @@ const OSC = require('osc-js');
 let socket;
 let interval;
 
-const waveformResolution = 128;
+const waveformResolution = 1024;
 let waveformTexture0 = {};
 let waveformTexture1 = {};
 
