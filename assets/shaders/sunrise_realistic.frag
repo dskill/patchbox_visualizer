@@ -15,7 +15,7 @@ uniform sampler2D iWaveformTexture0;
 //uniform vec4 iMeterAccumulated;
 vec2 iMeter = vec2(0.0,0.0);
 vec2 iMeterAccumulated = vec2(0.0,0.0);
-float iTweakValue0 = 0.2;
+float iTweakValue0 = 0.0; //sin(iTime);
 float iTweakValue1 = 0.5;
 float iTweakValue2 = 0.1;
 
@@ -145,7 +145,7 @@ float OceanHeight(vec2 p)
 
 
     //vec2 oneDimUVs = vec2(length(p) * .1, 1.0 - iInputWaveformActiveRow / iInputWaveformTotalRows);
-    //float waveform = iVizHeight * texture2D(texture1, oneDimUVs).x;
+ //   float waveform = iVizHeight * texture2D(texture1, oneDimUVs).x;
     //height = .1 * waveform; //sin(p.y ) * .1;
     float fade = max(1. - length(p) / 10000.0,0.);
     height = .025 * sin( length(p) * 2.0 + iMeterAccumulated.x);
@@ -257,8 +257,10 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     
     //vec2 oneDimUVs = vec2(ray.dir.y * 2.0 + 10.0, 1.0 - iInputWaveformActiveRow / iInputWaveformTotalRows);
 	vec2 oneDimUVs = vec2(ray.dir.y * 2.0 + 10.0, 1.0);
-    float waveform = texture2D(iWaveformTexture0, oneDimUVs).x;
-    //ray.dir.z += waveform * 1.1;
+    oneDimUVs.x = uv.y;
+    vec2 waveform = texture2D(iWaveformTexture0, oneDimUVs).xy;
+    sunDir.y += waveform.y * 1.0;
+    ray.dir.z += waveform.y * 1.2;
 
     if (ray.dir.y < 0.0) 
     {
@@ -269,18 +271,18 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
         vec3 refDir = reflect(ray.dir, hit.normal);
         refDir.y = abs(refDir.y);
         l = -camPos.y / ray.dir.y;
-        color = oceanColor + BGColor(refDir, sunDir, waveform) * FTerm(dot(refDir, hit.normal), 0.5);
+        color = oceanColor + BGColor(refDir, sunDir, waveform.x) * FTerm(dot(refDir, hit.normal), 0.5);
     } 
     else 
     {
         // Render clouds
-        vec3 bgColor = BGColor(ray.dir, sunDir, waveform);
+        vec3 bgColor = BGColor(ray.dir, sunDir, waveform.x);
         color += bgColor;
         
     }
     
     // Fog
-    color = mix(color, BGColor(ray.dir, sunDir, waveform), 1.0 - exp(-0.0001 * l));
+    color = mix(color, BGColor(ray.dir, sunDir, waveform.x), 1.0 - exp(-0.0001 * l));
     
     // Color grading
     color = smoothstep(0.3, 0.8, color);

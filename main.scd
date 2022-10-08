@@ -9,7 +9,7 @@ s.waitForBoot{
 // from the wonderful forum post:
 // https://scsynth.org/t/is-it-possible-to-get-the-output-of-a-ugen-as-an-array-of-floats-audio-buffer/6539/14
 
-var chunkSize = 512;
+var chunkSize = 256;
 var numChunks = 16;
 var relay_buffer0 = Buffer.alloc(s, chunkSize * numChunks);
 var relay_buffer1 = Buffer.alloc(s, chunkSize * numChunks);
