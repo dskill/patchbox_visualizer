@@ -9,7 +9,7 @@ s.waitForBoot{
 // from the wonderful forum post:
 // https://scsynth.org/t/is-it-possible-to-get-the-output-of-a-ugen-as-an-array-of-floats-audio-buffer/6539/14
 
-var chunkSize = 1024;
+var chunkSize = 512;
 var numChunks = 8;
 var relay_buffer0 = Buffer.alloc(s, chunkSize * numChunks);
 var relay_buffer1 = Buffer.alloc(s, chunkSize * numChunks);
@@ -40,20 +40,31 @@ OSCdef(\k, { |msg|
 	// the partition to retrieve is the one BEFORE the latest transition point
 	var partition = (msg[3] - 1) % numChunks;
 
+	//relay_buffer0.getn(0, 5, { |data| data.size.postln; } );
+
 	// also I'm using getn
 	// loadToFloatArray goes through a disk file
 	// that is faster for long collections
 	// for short collections, this is very inefficient
 	// you do not need to create/destroy 43 temp files per second here!
-	relay_buffer0.getn(partition * chunkSize, chunkSize, { |data|
+	relay_buffer0.getn(partition.asInteger * chunkSize, chunkSize, { |data|
 		~o.sendMsg(\waveform0, *(data.as(Array)));
 	});
 
-	relay_buffer1.getn(partition * chunkSize, chunkSize, { |data|
+	relay_buffer1.getn(partition.asInteger * chunkSize, chunkSize, { |data|
 		~o.sendMsg(\waveform1, *(data.as(Array)));
 	});
 
 }, '/buffer_refresh');
+
+synth.onFree {
+	OSCdef(\k).free;
+	// original code example leaks buffer references
+	// that is also not a good habit
+	relay_buffer0.free;
+	relay_buffer1.free;
+};
+
 } // end wait for boot
 );
 

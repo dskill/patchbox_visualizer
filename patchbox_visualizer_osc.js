@@ -27,12 +27,10 @@ const OSC = require('osc-js');
 let socket;
 let interval;
 
-const waveformResolution = 1024;
+const waveformResolution = 512;
 let waveformTexture0 = {};
 let waveformTexture1 = {};
 
-let waveformArray0 = new Float32Array(waveformResolution);
-let waveformArray1 = new Float32Array(waveformResolution);
 
 // START OSC STUFF
 
@@ -45,10 +43,10 @@ osc.on('*', message =>
 
   if (message.address == "/waveform0")
   {
-    waveformArray0 = args;
+    updateWaveformTexture0(args);
   } else if (message.address == "/waveform1")
   {
-    waveformArray1 = args;
+    updateWaveformTexture1(args);
   }
 })
 
@@ -88,34 +86,15 @@ function initShaderGlobals(regl)
   });
 }
 
-function initTone()
-{
-  let toneSplit = new Tone.Split();
-  let toneMic = new Tone.UserMedia().connect(toneSplit);
-  let toneWaveform = new Tone.Waveform(waveformResolution);
-  toneMic.open();
-
-  toneSplit.connect(toneWaveform, 0, 0);
-  waveformArray0 = new Float32Array(waveformResolution);
-  waveformArray1 = new Float32Array(waveformResolution);
-
-  const fps = 60;
-  interval = setInterval(() =>
-  {
-    waveformArray0 = toneWaveform.getValue();
-  },
-    (1 / fps) * 1000);
-}
-
 // Smooth linear interpolation that accounts for delta time
 function damp(a, b, lambda, dt)
 {
   return math.lerp(a, b, 1 - Math.exp(-lambda * dt));
 }
 
-function updateWaveformTexture(deltaTime)
+function updateWaveformTexture0(waveform)
 {
-  if (waveformArray0.length == waveformResolution)
+  if (waveform.length == waveformResolution)
   {
 
     // this is probably real slow. I wonder if there's a better way?
@@ -123,21 +102,22 @@ function updateWaveformTexture(deltaTime)
       shape: [waveformResolution, 1, 1],
       format: 'luminance',
       type: 'float32',
-      data: waveformArray0
+      data: waveform
     });
   }
-
-  if (waveformArray1.length == waveformResolution)
+}
+function updateWaveformTexture1(waveform)
+{
+  if (waveform.length == waveformResolution)
   {
     waveformTexture1({
       shape: [waveformResolution, 1, 1],
       format: 'luminance',
       type: 'float32',
-      data: waveformArray1
+      data: waveform
     });
   }
 }
-
 
 // Setup our sketch
 const settings = {
@@ -240,7 +220,6 @@ const sketch = ({ canvas, gl, update, render, pause }) =>
       });
 
       // refresh the waveform texture
-      updateWaveformTexture(deltaTime);
       drawQuad({
         iTime: time,
         time: time,
