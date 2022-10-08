@@ -29,7 +29,9 @@ let interval;
 
 const waveformResolution = 512;
 let waveformTexture0 = {};
-let waveformTexture1 = {};
+let waveformArray0 = [];
+let waveformArray1 = [];
+let requestWaveformTextureUpdate = false;
 
 
 // START OSC STUFF
@@ -39,14 +41,16 @@ const osc = new OSC()
 osc.on('*', message =>
 {
   let args = message.args;
-  console.log("address", message.address, "message length: " + args.length);
+  //console.log("address", message.address, "message length: " + args.length);
 
   if (message.address == "/waveform0")
   {
-//    updateWaveformTexture0(args);
+    waveformArray0 = args;
+    requestWaveformTextureUpdate = true;
   } else if (message.address == "/waveform1")
   {
-	    updateWaveformTexture1(args);
+    waveformArray1 = args;
+    requestWaveformTextureUpdate = true;
   }
 })
 
@@ -74,14 +78,14 @@ function initShaderGlobals(regl)
 {
   // From a flat array
   waveformTexture0 = regl.texture({
-    shape: [waveformResolution, 1, 1],
-    format: 'luminance',
+    shape: [waveformResolution, 1],
+    format: 'rgba',
     type: 'float32'
   });
 
   waveformTexture1 = regl.texture({
-    shape: [waveformResolution, 1, 1],
-    format: 'luminance',
+    shape: [waveformResolution, 2],
+    format: 'rgba',
     type: 'float32'
   });
 }
@@ -92,31 +96,27 @@ function damp(a, b, lambda, dt)
   return math.lerp(a, b, 1 - Math.exp(-lambda * dt));
 }
 
-function updateWaveformTexture0(waveform)
+function updateWaveformTexture()
 {
-  if (waveform.length == waveformResolution)
-  {
+    // make an array that concatenates the waveform with itself
+    // so that we can draw a line between the two
+    let waveformArray = new Float32Array(waveformResolution * 4);
+    for (let i = 0; i < waveformResolution; i++)
+    {
+      waveformArray[i * 4] = waveformArray0[i];
+      waveformArray[i * 4 + 1] = waveformArray1[i];
+      waveformArray[i * 4 + 1] = waveformArray1[i];
+      waveformArray[i * 4 + 1] = waveformArray1[i];
+
+    }
 
     // this is probably real slow. I wonder if there's a better way?
     waveformTexture0({
-      shape: [waveformResolution, 1, 1],
-      format: 'luminance',
+      shape: [waveformResolution, 1],
+      format: 'rgba',
       type: 'float32',
-      data: waveform
+      data: waveformArray
     });
-  }
-}
-function updateWaveformTexture1(waveform)
-{
-  if (waveform.length == waveformResolution)
-  {
-    waveformTexture1({
-      shape: [waveformResolution, 1, 1],
-      format: 'luminance',
-      type: 'float32',
-      data: waveform
-    });
-  }
 }
 
 // Setup our sketch
@@ -184,9 +184,8 @@ const sketch = ({ canvas, gl, update, render, pause }) =>
       iTime: regl.prop('iTime'),
       time: regl.prop('time'), // no idea why this is still needed :O
       iResolution: regl.prop('iResolution'),
-      // TODO: Pack these into a single RGB Float texture
+
       iWaveformTexture0: regl.prop('iWaveformTexture0'),
-      iWaveformTexture1: regl.prop('iWaveformTexture1'),
     },
     // Setup transparency blending
     blend: {
@@ -209,6 +208,11 @@ const sketch = ({ canvas, gl, update, render, pause }) =>
   return {
     render({ context, time, deltaTime, width, height })
     {
+      if (requestWaveformTextureUpdate) {
+        updateWaveformTexture();
+        //updateWaveformTexture1(waveformArray1);
+        requestWaveformTextureUpdate = false;
+      }
       // On each tick, update regl timers and sizes
       regl.poll();
 
@@ -226,7 +230,6 @@ const sketch = ({ canvas, gl, update, render, pause }) =>
         aspect: width / height,
         iResolution: [canvas.width, canvas.height],
         iWaveformTexture0: waveformTexture0,
-        iWaveformTexture1: waveformTexture1
       });
 
       // Flush pending GL calls for this frame
