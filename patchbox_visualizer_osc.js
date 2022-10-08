@@ -176,7 +176,9 @@ const sketch = ({ canvas, gl, update, render, pause }) =>
 
   const drawQuad = regl({
     // Fragment & Vertex shaders 
+    //frag: glslify(path.resolve(__dirname, 'assets/shaders/sunrise_realistic.frag')),
     frag: glslify(path.resolve(__dirname, 'assets/shaders/multi_waveform.frag')),
+    
     vert: glslify(path.resolve(__dirname, 'assets/shaders/default.vert')),
     // Pass down props from javascript
     uniforms: {
