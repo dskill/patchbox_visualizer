@@ -43,10 +43,10 @@ osc.on('*', message =>
 
   if (message.address == "/waveform0")
   {
-    updateWaveformTexture0(args);
+//    updateWaveformTexture0(args);
   } else if (message.address == "/waveform1")
   {
-    updateWaveformTexture1(args);
+	    updateWaveformTexture1(args);
   }
 })
 
