@@ -36,7 +36,13 @@ let requestWaveformTextureUpdate = false;
 
 // START OSC STUFF
 
-const osc = new OSC()
+// completely confused about which of these options are relevant
+// keep these in sync with the server, maybe?
+const options = {
+  host: '192.168.50.125',    // @param {string} Hostname of WebSocket server
+  port: 8080           // @param {number} Port of WebSocket server
+}
+const osc = new OSC({ plugin: new OSC.WebsocketClientPlugin(options) })
 
 osc.on('*', message =>
 {
@@ -66,13 +72,10 @@ osc.on('open', () =>
   osc.send(message)
 })
 
-// completely confused about which of these options are relevant
-// keep these in sync with the server, maybe?
-const options = {
-     //host: '192.168.50.125',    // @param {string} Hostname of WebSocket server
-    // port: 8080           // @param {number} Port of WebSocket server
- }
-osc.open( { plugin: new OSC.WebsocketClientPlugin() })
+
+ 
+osc.open( )
+console.log(osc.status);
 // END OSC STUFF
 
 function initShaderGlobals(regl)

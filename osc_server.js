@@ -9,7 +9,7 @@ let options = {
       exclusive: false      // @param {boolean} Exclusive flag
     },
     wsServer: {
-      host: 'localhost',    // @param {string} Hostname of WebSocket server
+      host: '192.168.50.125',    // @param {string} Hostname of WebSocket server
       port: 8080            // @param {number} Port of WebSocket server
     },
     udpClient: {
