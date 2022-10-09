@@ -2,19 +2,19 @@ const OSC = require('osc-js');
 
 // completely confused about which of these options are relevant
 let options = {
-  receiver: 'ws',         // @param {string} Where messages sent via 'send' method will be delivered to, 'ws' for Websocket clients, 'udp' for udp client
+  receiver: 'udp',         // @param {string} Where messages sent via 'send' method will be delivered to, 'ws' for Websocket clients, 'udp' for udp client
     udpServer: {
       host: 'localhost',    // @param {string} Hostname of udp server to bind to
       port: 9912,          // @param {number} Port of udp server to bind to
       exclusive: false      // @param {boolean} Exclusive flag
     },
-    udpClient: {
-      host: 'localhost',    // @param {string} Hostname of udp client for messaging
-      port: 9912           // @param {number} Port of udp client for messaging
-    },
     wsServer: {
       host: 'localhost',    // @param {string} Hostname of WebSocket server
       port: 8080            // @param {number} Port of WebSocket server
+    },
+    udpClient: {
+      host: 'localhost',    // @param {string} Hostname of udp client for messaging
+      port: 57120           // @param {number} Port of udp client for messaging
     }
   }
 
@@ -38,10 +38,10 @@ osc.on('*', message => {
 
 // sent messages frequently when socket is ready
 
-/*
+
 osc.on('open', () => {
   setInterval(() => {
-     osc.send(new OSC.Message('/response', Math.random()))
+     osc.send(new OSC.Message('/hello_udp', Math.random()), { receiver: 'udp' })  ;//, { receiver: 'udp' })
+     osc.send(new OSC.Message('/hello_websocket', Math.random()), { receiver: 'ws' })  ;//, { receiver: 'udp' })
   }, 1000)
 })
-*/

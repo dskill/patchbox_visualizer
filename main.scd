@@ -1,6 +1,22 @@
 
 ~o = NetAddr.new("127.0.0.1", 9912);    // create the NetAddr
 ~o.sendMsg("/hello", "there");    // send the application the message "hello" with the
+NetAddr.langPort.postln;
+
+
+(
+~osc_receive = OSCFunc(
+
+	{ arg msg, time, addr, recvPort;
+
+		post('Revceived message to path: ');
+		msg[0].postln;
+
+		post('With value: ');
+		msg[1].postln;
+}, '\hello_udp');
+)
+
 s.boot;
 (
 s.waitForBoot{
@@ -48,6 +64,7 @@ var synth = {
 OSCdef(\k, { |msg|
 	// the partition to retrieve is the one BEFORE the latest transition point
 	var partition = (msg[3] - 1) % numChunks;
+	//msg.postln;
 
 	//relay_buffer0.getn(0, 5, { |data| data.size.postln; } );
 	//'send reply'.postln;
