@@ -15,16 +15,16 @@ var chunkSize = 256;
 var numChunks = 16;
 var relay_buffer0 = Buffer.alloc(s, chunkSize * numChunks);
 var relay_buffer1 = Buffer.alloc(s, chunkSize * numChunks);
-
+var synth;
 var osc_receive;
 
-var synth = {
+synth = SynthDef(\testsynth, { |out, reverbMix = 0.5|
 	//var sigB = SinOsc.ar(220);
-	//var sig = MulAdd(SinOsc.ar(200), 0.1,0);
+	//var sig = MulAdd(SinOsc.ar(freq), 0.4,0);
 	var sig = SoundIn.ar(0);
 	//var sigC =  MulAdd( Dust.ar(10000), 0.01, 0) ;
 	//var sigD = MulAdd(SinOsc.ar(2000), 0.2,0);
-	var sig_reverb = FreeVerb.ar(sig, 1.0, 0.9, 0.5, 2.0);
+	var sig_reverb = FreeVerb.ar(sig, reverbMix, 0.9, 0.5, 2.0);
 	//sig = sigB; //sigA + sigC; //sigA + sigB; //{Mix.new([sigA,sigB])};
 
 	var phase = Phasor.ar(0, 1, 0, chunkSize);
@@ -44,10 +44,9 @@ var synth = {
 	//SendReply.ar(trig, '/buffer_refresh', partition);
 	SendReply.ar(phase_reset_trig, '/buffer_refresh', partition);
 
-
 	// what audio to return from the function
-	sig_reverb + sig;
-}.play;
+	Out.ar(out, sig_reverb + sig);
+	}).play;
 
 OSCdef(\k, { |msg|
 	// the partition to retrieve is the one BEFORE the latest transition point
@@ -81,6 +80,7 @@ synth.onFree {
 	relay_buffer1.free;
 };
 
+
 // listen to OSC messages from the browser, via the node.js bridge
 osc_receive = OSCFunc(
 
@@ -91,8 +91,9 @@ osc_receive = OSCFunc(
 
 		post('With value: ');
 		msg[1].postln;
-}, '/testFloat');
 
+		synth.set(\reverbMix, msg[1]);
+}, '/reverbMix');
 
 } // end wait for boot
 );

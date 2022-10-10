@@ -107,12 +107,12 @@ function initGUI()
   let ip_label = { ip: ip };
   // TODO: can i set the waveform resolution here?
   var params = {
-    "testFloat": 0.5,
+    "reverbMix": 0.5,
   };
 
-  gui.add(params, "testFloat", 0, 1).onChange(function(value) {
-    console.log("testFloat changed to " + value);
-    osc.send(new OSC.Message('/testFloat', value) );
+  gui.add(params, "reverbMix", 0, 1).onChange(function(value) {
+    console.log("reverbMix changed to " + value);
+    osc.send(new OSC.Message('/reverbMix', value) );
   });
   gui.add(ip_label, 'ip');
 
