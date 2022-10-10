@@ -1,4 +1,7 @@
 const OSC = require('osc-js');
+var ip = require("ip");
+var myIP = ip.address();
+console.log("Running websocket server on: " + myIP);
 
 // completely confused about which of these options are relevant
 let options = {
@@ -9,7 +12,7 @@ let options = {
       exclusive: false      // @param {boolean} Exclusive flag
     },
     wsServer: {
-      host: '192.168.50.125',    // @param {string} Hostname of WebSocket server
+      host: myIP,    // @param {string} Hostname of WebSocket server
       port: 8080            // @param {number} Port of WebSocket server
     },
     udpClient: {

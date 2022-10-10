@@ -19,6 +19,7 @@
     "glsl-aastep": "^1.0.1",
     "glsl-hsl2rgb": "^1.1.0",
     "glsl-noise": "0.0.0",
+    "ip": "^1.1.8",
     "lerp": "^1.0.3",
     "load-asset": "^1.2.0",
     "midi": "^2.0.0",

@@ -24,6 +24,8 @@ const OSC = require('osc-js');
 //sendMode = false;
 //console.log("App is in " + (sendMode ? "send" : "receive") + " mode");
 
+let ip = window.location.hostname;
+
 let socket;
 let interval;
 
@@ -39,7 +41,7 @@ let requestWaveformTextureUpdate = false;
 // completely confused about which of these options are relevant
 // keep these in sync with the server, maybe?
 const options = {
-  host: '192.168.50.125',    // @param {string} Hostname of WebSocket server
+  host: ip,    // @param {string} Hostname of WebSocket server
   port: 8080           // @param {number} Port of WebSocket server
 }
 const osc = new OSC({ plugin: new OSC.WebsocketClientPlugin(options) })
