@@ -2,67 +2,21 @@ const crypto = require('crypto');
 const express = require('express');
 const { createServer } = require('http');
 const WebSocket = require('ws');
+const OSC = require('osc-js');
+const ip = require("ip");
 
+const myIP = ip.address();
 const app = express();
 const port = 3000;
 
-// static files
+//
+// express server for static files
+//
 app.use(express.static('public'))
 
 const server = createServer(app);
-const wss = new WebSocket.Server({ server });
-wss.binaryType = 'arraybuffer';
 
-wss.on('connection', function(ws) {
-  console.log("client joined.");
-
-  // list the number of clients connected
-  console.log("clients connected: " + wss.clients.size);
-
-  // send "hello world" interval
-  //const textInterval = setInterval(() => ws.send("hello world!"), 100);
-
-  // send random bytes interval
-  //const binaryInterval = setInterval(() => ws.send(crypto.randomBytes(8).buffer), 110);
-  // create a float array from the random bytes
-  /*
-  const binaryInterval = setInterval(() => {
-    let floatArray = new Float32Array(crypto.randomBytes(4 * 256).buffer);
-    // send the float array
-    ws.send(floatArray.buffer);
-  }, 110);
-  */
-
-  //const binaryInterval = setInterval(() => ws.send( [1.23,2.23,432,.231], 110));
-
-  ws.on('message', function(data) {
-    if (typeof(data) === "string") {
-      // client sent a string
-      //console.log("string received from client -> '" + data + "'");
-
-    } else {
-      //console.log("binary received from client -> " + Array.from(data).join(", ") + "");
-      //console.log(data);
-    }
-
-    // pass the message to all clients
-    wss.clients.forEach(function(client) {
-      if (typeof(data) === "string") {
-        client.send(data);
-      } else {
-        client.send(Array.from(data));
-        //console.log('binary data: ' + Array.from(data));
-      }
-    });
-  });
-
-  ws.on('close', function() {
-    console.log("client left.");
-    //clearInterval(textInterval);
-    //clearInterval(binaryInterval);
-  });
-});
-
+// static express server
 server.listen(port, function() {
   // let people know what IP were on
   const os = require('os');
@@ -86,3 +40,52 @@ app.get('/', function(req, res){
   
   res.sendFile('index.html', { root: __dirname + "/" } );
 });
+
+//
+// OSC bridge server
+//
+// completely confused about which of these options are relevant
+let options = {
+    
+  receiver: 'udp',         // @param {string} Where messages sent via 'send' method will be delivered to, 'ws' for Websocket clients, 'udp' for udp client
+  // this is this node server, listening to UDP messages from supercollider
+  udpServer: {
+    host: 'localhost',    // @param {string} Hostname of udp server to bind to
+    port: 9912,          // @param {number} Port of udp server to bind to
+    exclusive: false      // @param {boolean} Exclusive flag
+  },
+  // this is this node server, listening to WS messages from the browser
+  wsServer: {
+    host: myIP,    // @param {string} Hostname of WebSocket server
+    port: 8080            // @param {number} Port of WebSocket server
+  },
+  // this is the supercollider client, where we send messages to supercollider
+  udpClient: {
+    host: 'localhost',    // @param {string} Hostname of udp client for messaging
+    port: 57120           // @param {number} Port of udp client for messaging
+  }
+}
+
+const osc = new OSC({ plugin: new OSC.BridgePlugin(options) })
+osc.open()
+  
+// listen for invoing messages
+osc.on('*', message => {
+ //console.log('MESSAGE');
+ //console.log(message);
+ /*
+ if (message.address == "/reverbMix") {
+    console.log(message);
+ }
+ */
+})
+
+// useful for debugging
+// sent messages frequently when socket is ready
+osc.on('open', () => {
+  setInterval(() => {
+    // osc.send(new OSC.Message('/hello_udp', Math.random()), { receiver: 'udp' })  ;//, { receiver: 'udp' })
+    // osc.send(new OSC.Message('/hello_websocket', Math.random()), { receiver: 'ws' })  ;//, { receiver: 'udp' })
+  }, 1000)
+})
+

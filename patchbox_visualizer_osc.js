@@ -111,7 +111,7 @@ function initGUI()
   };
 
   gui.add(params, "reverbMix", 0, 1).onChange(function(value) {
-    console.log("reverbMix changed to " + value);
+    //console.log("reverbMix changed to " + value);
     osc.send(new OSC.Message('/reverbMix', value) );
   });
   gui.add(ip_label, 'ip');
