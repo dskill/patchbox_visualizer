@@ -4,11 +4,11 @@ const createQuad = require('primitive-quad');
 const math = require('canvas-sketch-util/math');
 const glslify = require('glslify');
 const path = require('path');
-const tween = require('./util/tween');
 const Tone = require('tone');
 const createTouchListener = require('touches');
 const { Console, debug } = require('console');
 const OSC = require('osc-js');
+const { GUI } = require("dat.gui");
 
 
 //const serverURL = 'ws://192.168.50.125:3000'; // my laptop
@@ -25,9 +25,12 @@ const OSC = require('osc-js');
 //console.log("App is in " + (sendMode ? "send" : "receive") + " mode");
 
 let ip = window.location.hostname;
-
+let show_gui = false;
 let socket;
 let interval;
+
+// this should be const? not sure how to define it globally as a const tho
+let osc; 
 
 const waveformResolution = 256;
 let waveformTexture0 = {};
@@ -35,50 +38,52 @@ let waveformArray0 = [];
 let waveformArray1 = [];
 let requestWaveformTextureUpdate = false;
 
+// start an OSC connection to the node server running osc-js.  
+// this server will pass messages between any browsers running this page, and supercollider
+function initOSC() {
 
-// START OSC STUFF
-
-// completely confused about which of these options are relevant
-// keep these in sync with the server, maybe?
-const options = {
-  host: ip,    // @param {string} Hostname of WebSocket server
-  port: 8080           // @param {number} Port of WebSocket server
-}
-const osc = new OSC({ plugin: new OSC.WebsocketClientPlugin(options) })
-
-osc.on('*', message =>
-{
-  let args = message.args;
-
-  if (message.address == "/waveform0")
-  {
-    waveformArray0 = args;
-    requestWaveformTextureUpdate = true;
-  } else if (message.address == "/waveform1")
-  {
-    waveformArray1 = args;
-    requestWaveformTextureUpdate = true;
-  } else {
-    console.log("non waveform message:", message.address, message.args); //"message length: " + args.length);
+  const options = {
+    host: ip,    // @param {string} Hostname of WebSocket server
+    port: 8080           // @param {number} Port of WebSocket server
   }
-})
+  osc = new OSC({ plugin: new OSC.WebsocketClientPlugin(options) })
+  
+  osc.on('*', message =>
+  {
+    let args = message.args;
+  
+    if (message.address == "/waveform0")
+    {
+      waveformArray0 = args;
+      requestWaveformTextureUpdate = true;
+    } else if (message.address == "/waveform1")
+    {
+      waveformArray1 = args;
+      requestWaveformTextureUpdate = true;
+    } else {
+      console.log("non waveform message:", message.address, message.args); //"message length: " + args.length);
+    }
+  })
+  
+  osc.on('/{foo,bar}/*/param', message =>
+  {
+    console.log(message.args)
+  })
+  
+  osc.on('open', () =>
+  {
+    const message = new OSC.Message('/test', 12.221, 'hello')
+    osc.send(message)
+  })
+  
+  osc.open( )
+}
 
-osc.on('/{foo,bar}/*/param', message =>
-{
-  console.log(message.args)
-})
-
-osc.on('open', () =>
-{
-  const message = new OSC.Message('/test', 12.221, 'hello')
-  osc.send(message)
-})
-
-
- 
-osc.open( )
-console.log(osc.status);
-// END OSC STUFF
+function initParams() {
+  const queryString = window.location.search;
+  const urlParams = new URLSearchParams(queryString);
+  show_gui = urlParams.has('gui');
+}
 
 function initShaderGlobals(regl)
 {
@@ -96,11 +101,28 @@ function initShaderGlobals(regl)
   });
 }
 
-// Smooth linear interpolation that accounts for delta time
-function damp(a, b, lambda, dt)
+function initGUI()
 {
-  return math.lerp(a, b, 1 - Math.exp(-lambda * dt));
+  var gui = new GUI();
+  let ip_label = { ip: ip };
+  // TODO: can i set the waveform resolution here?
+  var params = {
+    "testFloat": 0.5,
+  };
+
+  gui.add(params, "testFloat", 0, 1).onChange(function(value) {
+    console.log("testFloat changed to " + value);
+    osc.send(new OSC.Message('/testFloat', value) );
+  });
+  gui.add(ip_label, 'ip');
+
+  // add a gui label
+  //gui.add(params, 'waveformResolution', 0, 1024).listen();
+  //gui.add(params, 'waveformResolution', 1, 1024);
+  //gui.add(params, 'waveform0', 0, 1);
+  //gui.add(params, 'waveform1', 0, 1);
 }
+
 
 function updateWaveformTexture()
 {
@@ -169,16 +191,19 @@ function onTouch(ev, clientPosition)
 // renderer & canvas-sketch setup  //
 const sketch = ({ canvas, gl, update, render, pause }) =>
 {
+  initParams();
+  initOSC();
+  if (show_gui) {
+    initGUI();
+  }
   // Create regl for handling GL stuff
   const regl = createRegl({ gl, extensions: ['OES_standard_derivatives', 'OES_texture_float'] });
   // A mesh for a flat plane
   const quad = createQuad();
+  initShaderGlobals(regl);
 
   // Let's use this handy utility to handle mouse/touch taps
   const touches = createTouchListener(canvas).on('start', onTouch);
-
-  initShaderGlobals(regl);
-  //startConnection();
 
   const drawQuad = regl({
     // Fragment & Vertex shaders 
@@ -214,7 +239,7 @@ const sketch = ({ canvas, gl, update, render, pause }) =>
   });
 
   return {
-    render({ context, time, deltaTime, width, height })
+    render({ context, time, deltaTime, width, height, canvas })
     {
       if (requestWaveformTextureUpdate) {
         updateWaveformTexture();
@@ -242,6 +267,9 @@ const sketch = ({ canvas, gl, update, render, pause }) =>
 
       // Flush pending GL calls for this frame
       gl.flush();
+
+      //context.font = '48px serif';
+      //context.fillText('Hello world', 10, 50);
     },
     unload()
     {

@@ -3,20 +3,6 @@
 ~o.sendMsg("/hello", "there");    // send the application the message "hello" with the
 NetAddr.langPort.postln;
 
-
-(
-~osc_receive = OSCFunc(
-
-	{ arg msg, time, addr, recvPort;
-
-		post('Revceived message to path: ');
-		msg[0].postln;
-
-		post('With value: ');
-		msg[1].postln;
-}, '\hello_udp');
-)
-
 s.boot;
 (
 s.waitForBoot{
@@ -29,6 +15,8 @@ var chunkSize = 256;
 var numChunks = 16;
 var relay_buffer0 = Buffer.alloc(s, chunkSize * numChunks);
 var relay_buffer1 = Buffer.alloc(s, chunkSize * numChunks);
+
+var osc_receive;
 
 var synth = {
 	//var sigB = SinOsc.ar(220);
@@ -92,6 +80,19 @@ synth.onFree {
 	relay_buffer0.free;
 	relay_buffer1.free;
 };
+
+// listen to OSC messages from the browser, via the node.js bridge
+osc_receive = OSCFunc(
+
+	{ arg msg, time, addr, recvPort;
+
+		post('Revceived message to path: ');
+		msg[0].postln;
+
+		post('With value: ');
+		msg[1].postln;
+}, '/testFloat');
+
 
 } // end wait for boot
 );
