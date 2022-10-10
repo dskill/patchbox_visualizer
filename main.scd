@@ -86,7 +86,7 @@ osc_receive = OSCFunc(
 
 	{ arg msg, time, addr, recvPort;
 
-		post('Revceived message to path: ');
+		post('Received message to path: ');
 		msg[0].postln;
 
 		post('With value: ');
