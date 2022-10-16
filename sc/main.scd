@@ -51,6 +51,9 @@ var chunkSize = 256;
 var numChunks = 16;
 var relay_buffer0 = Buffer.alloc(s, chunkSize * numChunks);
 var relay_buffer1 = Buffer.alloc(s, chunkSize * numChunks);
+var relay_buffer2 = Buffer.alloc(s, 4096);
+
+
 var synth;
 var osc_receive;
 
@@ -64,9 +67,9 @@ synth = SynthDef(\testsynth, { |out, reverbMix = 0.5|
 	var dust =  MulAdd( LFNoise1.kr(1, 0.5, 0.5), 10.0, 0.0) ;
 	//var sigD = MulAdd(SinOsc.ar(2000), 0.2,0);
 	//sig = sigB; //sigA + sigC; //sigA + sigB; //{Mix.new([sigA,sigB])};
-	var preGain = 10.0;
+	var preGain = 3.0;
 	var postGain =0.1;
-
+		//
 	//var sig_distort = (sig * preGain * dust).distort * postGain;
 	//var thing = CombL.ar(sig, 10, SinOsc.kr(1, 0, 0.5,0.5), 10) ;
 
@@ -84,12 +87,29 @@ synth = SynthDef(\testsynth, { |out, reverbMix = 0.5|
 	var phase_reset_trig = Impulse.ar(30);
 
 	var final_sig = sig_distort;
+	//var inA = SinOsc.ar(920, 0, 0.5);
+	var inA = PlayBuf.ar(1, solobuffer, BufRateScale.kr(solobuffer), loop: 1);
+    var chain = FFT(relay_buffer2, inA);
+		//chain.inspect;
+		// Convert to frequency domain and convert back
+		// No processing here
+		// You can add processing here before you convert back
+	//sig = IFFT(chain);
+		//chain = chain.pvcalc(256, {|mags, phases|
+			//[mags, phase];
+			//////// Try uncommenting each of these lines in turn and re-running the synth:
+			//[mags * {1.5.rand}.dup(mags.size), phases + {pi.rand}.dup(phases.size)]; // Arbitrary filter, arbitrary phase shift
+			//[mags.reverse, phases.reverse]; // Upside-down!
+			//[mags.differentiate, phases.differentiate]; // Differentiate along frequency axis
+			//[mags[30..] ++ mags[..30], phases[30..] ++ phases[..30]]; // ".rotate" doesn't work directly, but this is equivalent
+	//});//, frombin: 0, tobin: 256, zeroothers: 1);
 
+	final_sig = inA;
 		//sig =  SoundIn.ar(0);
 	//final_sig = sig * dust;//sig_distort;//dust; //final_sig + dust;
 
-	BufWr.ar(sig, relay_buffer0, phase + (chunkSize * partition));
-	BufWr.ar(sig_reverb, relay_buffer1, phase + (chunkSize * partition));
+	BufWr.ar(final_sig, relay_buffer0, phase + (chunkSize * partition));
+	//BufWr.kr(chain, relay_buffer2); //phase + (chunkSize * partition));
 
 
 	//SendReply.ar(trig, '/buffer_refresh', partition);
@@ -115,8 +135,7 @@ OSCdef(\k, { |msg|
 		~o.sendMsg(\waveform0, *(data.as(Array)));
 	});
 
-
-	relay_buffer1.getn(partition.asInteger * chunkSize, chunkSize, { |data|
+	relay_buffer2.getn(0, chunkSize, { |data|
 		~o.sendMsg(\waveform1, *(data.as(Array)));
 	});
 
@@ -130,7 +149,6 @@ synth.onFree {
 	relay_buffer0.free;
 	relay_buffer1.free;
 };
-
 
 // listen to OSC messages from the browser, via the node.js bridge
 osc_receive = OSCFunc(
@@ -148,3 +166,4 @@ osc_receive = OSCFunc(
 
 } // end wait for boot
 );
+

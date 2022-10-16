@@ -36,6 +36,8 @@ const waveformResolution = 256;
 let waveformTexture0 = {};
 let waveformArray0 = [];
 let waveformArray1 = [];
+// rename this now that i'm using it for history 
+let waveformArray = new Float32Array(waveformResolution * 4);
 let requestWaveformTextureUpdate = false;
 
 // start an OSC connection to the node server running osc-js.  
@@ -128,13 +130,12 @@ function updateWaveformTexture()
 {
     // make an array that concatenates the waveform with itself
     // so that we can draw a line between the two
-    let waveformArray = new Float32Array(waveformResolution * 4);
     for (let i = 0; i < waveformResolution; i++)
     {
       waveformArray[i * 4] = waveformArray0[i];
-      waveformArray[i * 4 + 1] = waveformArray1[i];
-      waveformArray[i * 4 + 1] = waveformArray1[i];
-      waveformArray[i * 4 + 1] = waveformArray1[i];
+      waveformArray[i * 4 + 1] = math.lerp(waveformArray[i * 4 + 1], Math.abs(waveformArray1[i]) * .02, 0.1);
+      waveformArray[i * 4 + 2] = 0.0 * waveformArray1[i];
+      waveformArray[i * 4 + 3 ] = 0.0 * waveformArray1[i];
 
     }
 
