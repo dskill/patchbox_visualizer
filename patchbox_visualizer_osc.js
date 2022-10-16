@@ -132,10 +132,10 @@ function updateWaveformTexture()
     // so that we can draw a line between the two
     for (let i = 0; i < waveformResolution; i++)
     {
-      waveformArray[i * 4] = waveformArray0[i];
-      waveformArray[i * 4 + 1] = math.lerp(waveformArray[i * 4 + 1], Math.abs(waveformArray1[i]) * .02, 0.1);
-      waveformArray[i * 4 + 2] = 0.0 * waveformArray1[i];
-      waveformArray[i * 4 + 3 ] = 0.0 * waveformArray1[i];
+      waveformArray[i * 4] =  waveformArray0[i];
+      waveformArray[i * 4 + 1] = math.lerp(waveformArray[i * 4 + 1], Math.abs(waveformArray1[i]) * .02, 0.3);
+      waveformArray[i * 4 + 2] = waveformArray1[i];
+      waveformArray[i * 4 + 3 ] = waveformArray1[i];
 
     }
 
@@ -209,7 +209,7 @@ const sketch = ({ canvas, gl, update, render, pause }) =>
   const drawQuad = regl({
     // Fragment & Vertex shaders 
     //frag: glslify(path.resolve(__dirname, 'assets/shaders/sunrise_realistic.frag')),
-    frag: glslify(path.resolve(__dirname, 'assets/shaders/multi_waveform.frag')),
+    frag: glslify(path.resolve(__dirname, 'assets/shaders/multi_waveform_fft.frag')),
     
     vert: glslify(path.resolve(__dirname, 'assets/shaders/default.vert')),
     // Pass down props from javascript

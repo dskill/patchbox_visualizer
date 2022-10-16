@@ -51,13 +51,13 @@ var chunkSize = 256;
 var numChunks = 16;
 var relay_buffer0 = Buffer.alloc(s, chunkSize * numChunks);
 var relay_buffer1 = Buffer.alloc(s, chunkSize * numChunks);
-var relay_buffer2 = Buffer.alloc(s, 4096);
+var relay_buffer2 = Buffer.alloc(s, 4096 * 2);
 
 
 var synth;
 var osc_receive;
 
-var solobuffer = Buffer.read(s, "/Users/drew/src/patchbox_visualizer/assets/music/solo.wav");
+	var solobuffer = Buffer.read(s, "/Users/drew/src/patchbox_visualizer/assets/music/guitar-tuning.wav"); //solo.wav");
 
 synth = SynthDef(\testsynth, { |out, reverbMix = 0.5|
 	//var sigB = SinOsc.ar(220);
@@ -87,9 +87,10 @@ synth = SynthDef(\testsynth, { |out, reverbMix = 0.5|
 	var phase_reset_trig = Impulse.ar(30);
 
 	var final_sig = sig_distort;
-	//var inA = SinOsc.ar(920, 0, 0.5);
+	//var inA = SinOsc.ar(SinOsc.kr(0.2, 0, 330/2.0 - 83, 330/2.0 + 83));
 	var inA = PlayBuf.ar(1, solobuffer, BufRateScale.kr(solobuffer), loop: 1);
     var chain = FFT(relay_buffer2, inA);
+
 		//chain.inspect;
 		// Convert to frequency domain and convert back
 		// No processing here
