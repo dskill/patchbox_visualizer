@@ -71,9 +71,10 @@ osc.open()
   
 // listen for invoing messages
 osc.on('*', message => {
- //console.log('MESSAGE');
- //console.log(message);
- /*
+   /*
+ console.log('MESSAGE');
+ console.log(message);
+
  if (message.address == "/reverbMix") {
     console.log(message);
  }

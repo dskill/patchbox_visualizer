@@ -3,6 +3,9 @@
 // install all libraries from james harkins
 // http://www.dewdrop-world.net
 // MethodOverride.printAll
+//Quarks.install("https://github.com/madskjeldgaard/plugins.quark")
+Plugins.gui;
+
 
 ~o = NetAddr.new("127.0.0.1", 9912);    // create the NetAddr
 ~o.sendMsg("/hello", "there");    // send the application the message "hello" with the

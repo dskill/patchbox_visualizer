@@ -47,7 +47,7 @@ s.waitForBoot{
 // from the wonderful forum post:
 // https://scsynth.org/t/is-it-possible-to-get-the-output-of-a-ugen-as-an-array-of-floats-audio-buffer/6539/14
 
-var chunkSize = 256;
+var chunkSize = 512;
 var numChunks = 16;
 var relay_buffer0 = Buffer.alloc(s, chunkSize * numChunks);
 var relay_buffer1 = Buffer.alloc(s, chunkSize * numChunks);
@@ -87,6 +87,7 @@ synth = SynthDef(\testsynth, { |out, reverbMix = 0.5|
 	var phase_reset_trig = Impulse.ar(30);
 
 	var final_sig = sig_distort;
+	var in_sig;
 	//var inA = SinOsc.ar(SinOsc.kr(0.2, 0, 330/2.0 - 83, 330/2.0 + 83));
 	var inA = PlayBuf.ar(1, solobuffer, BufRateScale.kr(solobuffer), loop: 1);
     var chain = FFT(relay_buffer2, inA);
@@ -106,10 +107,13 @@ synth = SynthDef(\testsynth, { |out, reverbMix = 0.5|
 	//});//, frombin: 0, tobin: 256, zeroothers: 1);
 
 	final_sig = inA;
+	in_sig = sig_distort;
 		//sig =  SoundIn.ar(0);
 	//final_sig = sig * dust;//sig_distort;//dust; //final_sig + dust;
 
-	BufWr.ar(final_sig, relay_buffer0, phase + (chunkSize * partition));
+	BufWr.ar(in_sig, relay_buffer0, phase + (chunkSize * partition));
+	BufWr.ar(sig_distort, relay_buffer1, phase + (chunkSize * partition));
+
 	//BufWr.kr(chain, relay_buffer2); //phase + (chunkSize * partition));
 
 
@@ -117,7 +121,7 @@ synth = SynthDef(\testsynth, { |out, reverbMix = 0.5|
 	SendReply.ar(phase_reset_trig, '/buffer_refresh', partition);
 
 	// what audio to return from the function
-		Out.ar(out, final_sig); //sig_reverb + sig);
+	Out.ar(out, sig_distort); //sig_reverb + sig);
 	}).play;
 
 OSCdef(\k, { |msg|
@@ -136,10 +140,16 @@ OSCdef(\k, { |msg|
 		~o.sendMsg(\waveform0, *(data.as(Array)));
 	});
 
-	relay_buffer2.getn(0, chunkSize, { |data|
+	relay_buffer1.getn(partition.asInteger * chunkSize, chunkSize, { |data|
 		~o.sendMsg(\waveform1, *(data.as(Array)));
 	});
 
+	// for FFT
+	/*
+	relay_buffer2.getn(0, chunkSize, { |data|
+		~o.sendMsg(\waveform1, *(data.as(Array)));
+	});
+	*/
 
 }, '/buffer_refresh');
 
