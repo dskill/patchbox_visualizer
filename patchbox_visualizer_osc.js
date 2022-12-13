@@ -32,7 +32,7 @@ let interval;
 // this should be const? not sure how to define it globally as a const tho
 let osc; 
 
-const waveformResolution = 256;
+const waveformResolution = 128;
 let waveformTexture0 = {};
 let waveformArray0 = [];
 let waveformArray1 = [];
@@ -132,9 +132,9 @@ function updateWaveformTexture()
     for (let i = 0; i < waveformResolution; i++)
     {
       waveformArray[i * 4] = waveformArray0[i];
-      waveformArray[i * 4 + 1] = waveformArray1[i];
-      waveformArray[i * 4 + 1] = waveformArray1[i];
-      waveformArray[i * 4 + 1] = waveformArray1[i];
+      waveformArray[i * 4 + 1] = waveformArray1[i]*.1;
+      waveformArray[i * 4 + 2] = waveformArray1[i];
+      waveformArray[i * 4 + 3] = waveformArray1[i];
 
     }
 
@@ -241,7 +241,9 @@ const sketch = ({ canvas, gl, update, render, pause }) =>
   return {
     render({ context, time, deltaTime, width, height, canvas })
     {
+//requestWaveformTextureUpdate = true;
       if (requestWaveformTextureUpdate) {
+//	waveformArray0[0] =  time;
         updateWaveformTexture();
         //updateWaveformTexture1(waveformArray1);
         requestWaveformTextureUpdate = false;

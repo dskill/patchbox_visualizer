@@ -33,7 +33,8 @@ p.set(\postGain, 0.3);
 
 z = m.playfx(Instr.at([\busfx, \chorus]), [0, 1]);
 z.set(\speed, 0.64);
-z.set(\xfade, 0.4);
+z.set(\xfade, 0.4);192.168.50.241:3000
+
 z.set(\depth, 0.1);
 )
 */
@@ -47,7 +48,7 @@ s.waitForBoot{
 // from the wonderful forum post:
 // https://scsynth.org/t/is-it-possible-to-get-the-output-of-a-ugen-as-an-array-of-floats-audio-buffer/6539/14
 
-var chunkSize = 256;
+var chunkSize = 128;
 var numChunks = 16;
 var relay_buffer0 = Buffer.alloc(s, chunkSize * numChunks);
 var relay_buffer1 = Buffer.alloc(s, chunkSize * numChunks);
@@ -59,18 +60,18 @@ var solobuffer = Buffer.read(s, "/Users/drew/src/patchbox_visualizer/assets/musi
 synth = SynthDef(\testsynth, { |out, reverbMix = 0.5|
 	//var sigB = SinOsc.ar(220);
 	//var sig = MulAdd(SinOsc.ar(400), 0.4,0);
-	var sig = BufRd.ar(1, solobuffer, Phasor.ar(0, BufRateScale.kr(solobuffer), 0, BufFrames.kr(solobuffer)), 1, 2);
-	//var sig = SoundIn.ar(0);
+	//var sig = BufRd.ar(1, solobuffer, Phasor.ar(0, BufRateScale.kr(solobuffer), 0, BufFrames.kr(solobuffer)), 1, 2);
+	var sig = SoundIn.ar(0);
 	var dust =  MulAdd( LFNoise1.kr(1, 0.5, 0.5), 10.0, 0.0) ;
-	//var sigD = MulAdd(SinOsc.ar(2000), 0.2,0);
+	//var sigD = MulAdd(SinOsc.ar(400), 0.2,0);
 	//sig = sigB; //sigA + sigC; //sigA + sigB; //{Mix.new([sigA,sigB])};
 	var preGain = 10.0;
-	var postGain =0.1;
-
-	//var sig_distort = (sig * preGain * dust).distort * postGain;
+	var postGain =1.1;
+		//var sig = sigD;
+	var sig_distort = (sig * preGain * dust).distort * postGain;
 	//var thing = CombL.ar(sig, 10, SinOsc.kr(1, 0, 0.5,0.5), 10) ;
 
-	var sig_distort = ConstantGainDistortion.ar(sig, preGain * dust);  // tanh default
+	//var sig_distort = ConstantGainDistortion.ar(sig, preGain * dust);  // tanh default
 
 	var sig_reverb = FreeVerb.ar(sig_distort, reverbMix, 0.9, 0.5, 2.0);
 
@@ -83,13 +84,14 @@ synth = SynthDef(\testsynth, { |out, reverbMix = 0.5|
 
 	var phase_reset_trig = Impulse.ar(30);
 
-	var final_sig = sig_distort;
+	//var final_sig = sig;//sig_distort;
+	var final_sig = sig_reverb;
 
 		//sig =  SoundIn.ar(0);
 	//final_sig = sig * dust;//sig_distort;//dust; //final_sig + dust;
 
 	BufWr.ar(sig, relay_buffer0, phase + (chunkSize * partition));
-	BufWr.ar(sig_reverb, relay_buffer1, phase + (chunkSize * partition));
+	BufWr.ar(final_sig, relay_buffer1, phase + (chunkSize * partition));
 
 
 	//SendReply.ar(trig, '/buffer_refresh', partition);

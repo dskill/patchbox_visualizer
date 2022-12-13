@@ -31,9 +31,11 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 
 	// grab waveform
     vec2 waveform = -texture2D( iWaveformTexture0, 1.0 - uvTrue).rg;	
+//vec2 waveform = vec2(sin(iTime), sin(iTime*2.0));
 	float waveform0 = waveform.r;
 	float waveform1 = waveform.g;
-	
+//	fragColor = vec4(waveform.x,waveform.y,0,1);	
+//	return;	
     vec3 color = vec3(0.0); 
      
 	//float pinch = 1.0;
@@ -64,7 +66,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 	// hit pulse
 	color.rgb += 5.0 * vec3(.3,1.,.2) * (1.-vignette) * iHitPulse;
 	*/
-
+;
 	fragColor = vec4(color, 1.0);  
 }
 
