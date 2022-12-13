@@ -1,5 +1,0 @@
-/home/patch/src/patchbox_visualizer/#!/bin/sh
-
-node osc_server.js &
-http-server &
-sclang /home/patch/src/patchbox_visualizer/main.scd &
