@@ -32,7 +32,7 @@ let interval;
 // this should be const? not sure how to define it globally as a const tho
 let osc; 
 
-const waveformResolution = 256;
+const waveformResolution = 128;
 let waveformTexture0 = {};
 let waveformArray0 = [];
 let waveformArray1 = [];
@@ -132,13 +132,13 @@ function updateWaveformTexture()
     // so that we can draw a line between the two
     for (let i = 0; i < waveformResolution; i++)
     {
-      waveformArray[i * 4] = math.lerp(waveformArray[i * 4], Math.abs(waveformArray0[i]) * 1, 0.3);
-      waveformArray[i * 4 + 1] = math.lerp(waveformArray[i * 4 + 1], Math.abs(waveformArray1[i]) * 1, 0.3);
-      // for FFT waveformArray[i * 4 + 1] = math.lerp(waveformArray[i * 4 + 1], Math.abs(waveformArray1[i]) * .02, 0.3);
-      waveformArray[i * 4 + 2] = waveformArray1[i];
-      waveformArray[i * 4 + 3 ] = waveformArray1[i];
 
-    }
+      // for FFT waveformArray[i * 4 + 1] = math.lerp(waveformArray[i * 4 + 1], Math.abs(waveformArray1[i]) * .02, 0.3);
+      waveformArray[i * 4] = waveformArray0[i];
+      waveformArray[i * 4 + 1] = waveformArray1[i]*.1;
+      waveformArray[i * 4 + 2] = waveformArray1[i];
+      waveformArray[i * 4 + 3] = waveformArray1[i];
+   }
 
     // this is probably real slow. I wonder if there's a better way?
     waveformTexture0({
@@ -243,7 +243,9 @@ const sketch = ({ canvas, gl, update, render, pause }) =>
   return {
     render({ context, time, deltaTime, width, height, canvas })
     {
+//requestWaveformTextureUpdate = true;
       if (requestWaveformTextureUpdate) {
+//	waveformArray0[0] =  time;
         updateWaveformTexture();
         //updateWaveformTexture1(waveformArray1);
         requestWaveformTextureUpdate = false;
