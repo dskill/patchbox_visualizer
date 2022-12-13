@@ -24,37 +24,50 @@ vec3 hsv2rgb_smooth( in vec3 c )
 	return c.z * mix( vec3(1.0), rgb, c.y);
 }
 
+float sdCircle( vec2 p, float r )
+{
+    return length(p) - r;
+}
+
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {    
-	vec2 uvTrue = fragCoord.xy / iResolution.xy;
-    vec2 uv = -1.0 + 2.0 * uvTrue;
+	vec2 uvOriginal = fragCoord.xy / iResolution.xy;
+    vec2 uvCentered = -1.0 + 2.0 * uvOriginal;
+	float r = length(uvOriginal);
+	float theta = atan(uvCentered.y, uvCentered.x);
 
 	// grab waveform
-    vec2 waveform = -texture2D( iWaveformTexture0, 1.0 - uvTrue).rg;	
-//vec2 waveform = vec2(sin(iTime), sin(iTime*2.0));
+	// make uvs that tile twice around the circle
+	float thetaUV = (theta +  3.14159) / (1.0 * 3.14159);
+	thetaUV = mod(thetaUV, 1.0);
+    vec2 waveform = -texture2D( iWaveformTexture0, vec2(thetaUV,0)).rg;	
 	float waveform0 = waveform.r;
 	float waveform1 = waveform.g;
-//	fragColor = vec4(waveform.x,waveform.y,0,1);	
-//	return;	
     vec3 color = vec3(0.0); 
-     
+    
 	//float pinch = 1.0;
-	//float pinch = 2. - abs(uvTrue.x - .5)*4.;
-	float pinch = 1.0 * 2.0/sin(uvTrue.x * 3.14159);
+	//float pinch = 2. - abs(uvOriginal.x - .5)*4.;
+	float pinch = pow(sin(thetaUV * 3.14159),.3);
 
-	//pinch = pow(pinch, .3);
-	//waveform0 *= pinch;
-	//waveform1 *= pinch;
-	float waveformUV = uv.y + waveform0 * 1.0 - .25 * pinch + 0.5;
-    color.r = 1.0 * pow(smoothstep(0.05*pinch,.001*pinch, abs(waveformUV)),4.);
-	color.g = .7 * pow(smoothstep(0.2*pinch,.001*pinch, abs(waveformUV - .005)),4.);
-	color.b = 0.5 * pow(smoothstep(0.6*pinch,.001*pinch, abs(waveformUV + .005)),4.);
+	float ring = sdCircle(uvCentered, .5 + pinch * waveform0 * .5);
+	ring = abs(ring);
+	//ring = smoothstep(.0,.01,ring);
+	color.r = 1.0 * pow(smoothstep(0.05*pinch,.001*pinch, ring),4.);
+	color.g = .7 * pow(smoothstep(0.2*pinch,.001*pinch, ring),4.);
+	color.b = 0.5 * pow(smoothstep(0.6*pinch,.001*pinch, ring),4.);
 
+	float ring2 = sdCircle(uvCentered, .6 + pinch * waveform1 * .5);
+	ring2 = abs(ring2);
+	//ring = smoothstep(.0,.01,ring);
+	color.r += 1.0 * pow(smoothstep(0.45*pinch,.001*pinch, ring2),4.);
+	color.g += .7 * pow(smoothstep(0.2*pinch,.001*pinch, ring2),4.);
+	color.b += 0.5 * pow(smoothstep(0.6*pinch,.001*pinch, ring2),4.);
 
-	waveformUV = uv.y + waveform1 * 1.0 + .25 * pinch - 0.5;
-    color.r += 1.2 * pow(smoothstep(0.45*pinch,.001*pinch, abs(waveformUV)),4.);
-	color.g += .8 * pow(smoothstep(0.2*pinch,.001*pinch, abs(waveformUV - .005)),4.);
-	color.b += 0.4 * pow(smoothstep(0.6*pinch,.001*pinch, abs(waveformUV + .005)),4.); 
+	float ring3 = sdCircle(uvCentered, .0 + waveform1 * .5);
+	//ring = smoothstep(.0,.01,ring);
+	color.r += .0 * pow(smoothstep(0.1,.001, ring3),1.);
+	color.g += 0.0 * pow(smoothstep(0.1,.001, ring3),1.);
+	color.b += .5 * pow(smoothstep(1.6,.001, ring3),1.);
 
 	fragColor = vec4(color, 1.0);  
 }

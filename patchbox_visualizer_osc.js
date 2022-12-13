@@ -155,7 +155,7 @@ function updateWaveformTexture()
 
       // for FFT waveformArray[i * 4 + 1] = math.lerp(waveformArray[i * 4 + 1], Math.abs(waveformArray1[i]) * .02, 0.3);
       waveformArray[i * 4] = waveformArray0[i];
-      waveformArray[i * 4 + 1] = waveformArray1[i]*.1;
+      waveformArray[i * 4 + 1] = waveformArray1[i];
       waveformArray[i * 4 + 2] = waveformArray1[i];
       waveformArray[i * 4 + 3] = waveformArray1[i];
    }
@@ -215,7 +215,6 @@ function onTouchMove(ev, clientPosition)
   // normalize the position
   let x = clientPosition[0] / window.innerWidth;
   let y = clientPosition[1] / window.innerHeight;
-  // log
   handleInput(x,y);
 }
 
