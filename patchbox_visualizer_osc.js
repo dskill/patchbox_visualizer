@@ -95,12 +95,6 @@ function initShaderGlobals(regl)
     format: 'rgba',
     type: 'float32'
   });
-
-  waveformTexture1 = regl.texture({
-    shape: [waveformResolution, 2],
-    format: 'rgba',
-    type: 'float32'
-  });
 }
 
 function initGUI()
@@ -110,11 +104,30 @@ function initGUI()
   // TODO: can i set the waveform resolution here?
   var params = {
     "reverbMix": 0.5,
+    "distortionPreGain": 0.5,
+    "distortionPostGain": 0.5,
+    "delayMix": 0.5,
+    "delayTime": 0.1,
+    "delayFeedback": 5,
   };
 
   gui.add(params, "reverbMix", 0, 1).onChange(function(value) {
-    //console.log("reverbMix changed to " + value);
     osc.send(new OSC.Message('/reverbMix', value) );
+  });
+  gui.add(params, "distortionPreGain", 0, 10).onChange(function(value) {
+    osc.send(new OSC.Message('/distortionPreGain', value) );
+  });
+  gui.add(params, "distortionPostGain", 0, 10).onChange(function(value) {
+    osc.send(new OSC.Message('/distortionPostGain', value) );
+  });
+  gui.add(params, "delayMix", 0, 1).onChange(function(value) {
+    osc.send(new OSC.Message('/delayMix', value) );
+  });
+  gui.add(params, "delayTime", 0, 1).onChange(function(value) {
+    osc.send(new OSC.Message('/delayTime', value) );
+  });
+  gui.add(params, "delayFeedback", 0, 10).onChange(function(value) {
+    osc.send(new OSC.Message('/delayFeedback', value) );
   });
   gui.add(ip_label, 'ip');
 
@@ -243,11 +256,8 @@ const sketch = ({ canvas, gl, update, render, pause }) =>
   return {
     render({ context, time, deltaTime, width, height, canvas })
     {
-//requestWaveformTextureUpdate = true;
       if (requestWaveformTextureUpdate) {
-//	waveformArray0[0] =  time;
         updateWaveformTexture();
-        //updateWaveformTexture1(waveformArray1);
         requestWaveformTextureUpdate = false;
       }
       // On each tick, update regl timers and sizes

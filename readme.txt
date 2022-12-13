@@ -8,3 +8,11 @@ sudo systemctl stop kiosk (enable/disable/start)
 main.scd is the super collider script that will run
 
 index.html is the webpage that will load
+
+to build index, use npx canvas-sketch patchbox_visualizer_osc.js --build --inline --name index
+
+to test the webpage, use npx canvas-sketch patchbox_visualizer_osc.js --hot --open
+
+kiosk.sh is where chromium is started.  That's from a service kiosk.service.
+
+mouse cursor is hidden with xset.
