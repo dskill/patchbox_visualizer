@@ -33,6 +33,8 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {    
 	vec2 uvOriginal = fragCoord.xy / iResolution.xy;
     vec2 uvCentered = -1.0 + 2.0 * uvOriginal;
+	// pinch the uv's a bit to make up for the HD aspect ratio (yes, hack)
+	uvCentered.x *= (16.0/9.0);
 	float r = length(uvOriginal);
 	float theta = atan(uvCentered.y, uvCentered.x);
 

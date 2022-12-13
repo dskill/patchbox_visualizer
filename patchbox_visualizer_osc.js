@@ -50,6 +50,70 @@ let params = {
   "delayFeedback": 5.0,
 };
 
+let distortionPreset = {
+  "reverbMix": 0.2,
+  "distortionPreGain": 7.0,
+  "distortionPostGain": 3.0,
+  "delayMix": 0.02,
+  "delayTime": 0.1,
+  "delayFeedback": 1.0,
+}
+
+let heavyDistortionPreset = {
+  "reverbMix": 0.2,
+  "distortionPreGain": 10.0,
+  "distortionPostGain": 10.0,
+  "delayMix": 0.3,
+  "delayTime": 0.1,
+  "delayFeedback": 3.0,
+}
+
+let cleanPreset = {
+  "reverbMix": 0.3,
+  "distortionPreGain": 1.0,
+  "distortionPostGain": 1.0,
+  "delayMix": 0.02,
+  "delayTime": 0.1,
+  "delayFeedback": 1.0,
+}
+
+let delayPreset = {
+  "reverbMix": 0.3,
+  "distortionPreGain": 1.0,
+  "distortionPostGain": 1.0,
+  "delayMix": 0.8,
+  "delayTime": 0.2,
+  "delayFeedback": 3.0,
+}
+
+let heavyDelayPreset = {
+  "reverbMix": 0.3,
+  "distortionPreGain": 1.0,
+  "distortionPostGain": 1.0,
+  "delayMix": 0.8,
+  "delayTime": 0.1,
+  "delayFeedback": 6.0,
+}
+
+let reverbPreset = {
+  "reverbMix": 1.0,
+  "distortionPreGain": 1.0,
+  "distortionPostGain": 1.0,
+  "delayMix": 0.02,
+  "delayTime": 0.1,
+  "delayFeedback": 1.0,
+}
+
+
+
+
+function blendParams(param1, param2, blend)
+{
+  for (const key in params) {
+    params[key] = math.lerp(param1[key], param2[key], blend);
+  }
+}
+
 function onParamChanged(name) {
   osc.send(new OSC.Message('/' + name, params[name]));
 }
@@ -141,6 +205,7 @@ function initGUI()
   show_gui = urlParams.has('gui');
   if (show_gui) {
     gui.show();
+    gui.close();
   } else {
     gui.hide();
   }
@@ -219,10 +284,49 @@ function onTouchMove(ev, clientPosition)
 }
 
 function handleInput(x,y) {
+  x -= .5;
+  y -= .5;
   params.reverbMix = x;
-  params.distortionPreGain = y*10;
+
+  // turn the x,y coordinate into polar coordinates
+  let r = Math.sqrt(x*x + y*y);
+  let theta = Math.atan2(y,x);
+ // theta = theta < 0 ? theta + 2*Math.PI : theta;
+  //theta *= 180 / Math.PI;
+  console.log(theta);
+
+  // as we go out from center, crank distortion
+  blendParams(cleanPreset, distortionPreset, r);
+  // blow out distortion at outer edges
+  let outerEdge = math.smoothstep(0.5, 0.6, r);
+  blendParams(params, heavyDistortionPreset, outerEdge);
+ 
+  // delay is up top
+  // calculate the dot product of (x,y) and the up vector
+  let down = Math.sin(theta);
+  down = math.smoothstep(0.5, 1.0, down);
+  blendParams(params, delayPreset, down);
+
+  let right = Math.sin(theta + Math.PI/2.0);
+  right = math.smoothstep(0.75, 1.0, right);
+  blendParams(params, heavyDelayPreset, right);
+
+  let left = Math.sin(theta - Math.PI/2.0);
+  left = math.smoothstep(0.75, 1.0, left);
+  blendParams(params, reverbPreset, left);
+
+  // get some clean in the center
+  let center = math.smoothstep(0.1, 0.0, r);
+  console.log("center: " + center);
+  blendParams(params, cleanPreset, center);
+  
+
   onParamChanged('reverbMix');
   onParamChanged('distortionPreGain');
+  onParamChanged('distortionPostGain');
+  onParamChanged('delayMix');
+  onParamChanged('delayTime');
+  onParamChanged('delayFeedback');
 }
 
 // renderer & canvas-sketch setup  //
