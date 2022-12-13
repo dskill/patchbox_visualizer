@@ -48,25 +48,14 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 	float waveformUV = uv.y + waveform0 * 1.0 - .25 * pinch + 0.5;
     color.r = 1.0 * pow(smoothstep(0.05*pinch,.001*pinch, abs(waveformUV)),4.);
 	color.g = .7 * pow(smoothstep(0.2*pinch,.001*pinch, abs(waveformUV - .005)),4.);
-	color.b = 0.7 * pow(smoothstep(0.6*pinch,.001*pinch, abs(waveformUV + .005)),4.);
+	color.b = 0.5 * pow(smoothstep(0.6*pinch,.001*pinch, abs(waveformUV + .005)),4.);
 
 
 	waveformUV = uv.y + waveform1 * 1.0 + .25 * pinch - 0.5;
-    color.r += 1.2 * pow(smoothstep(0.05*pinch,.001*pinch, abs(waveformUV)),4.);
+    color.r += 1.2 * pow(smoothstep(0.45*pinch,.001*pinch, abs(waveformUV)),4.);
 	color.g += .8 * pow(smoothstep(0.2*pinch,.001*pinch, abs(waveformUV - .005)),4.);
 	color.b += 0.4 * pow(smoothstep(0.6*pinch,.001*pinch, abs(waveformUV + .005)),4.); 
 
-	// beat pulse vignette
-	/*
-	float vignette = 1. - smoothstep(1. - .1 * iBeatPulse,1., abs(uvTrue.x - .5)*2.);
-	vignette *= 1. - smoothstep(.5 - .1 * iBeatPulse,1., abs(uvTrue.y - .5)*2.);
-	vignette = length( uv * .5);
-	color.rgb += vec3(.2,.3,1.0) * abs(vignette) * iBeatPulse;
-
-	// hit pulse
-	color.rgb += 5.0 * vec3(.3,1.,.2) * (1.-vignette) * iHitPulse;
-	*/
-;
 	fragColor = vec4(color, 1.0);  
 }
 

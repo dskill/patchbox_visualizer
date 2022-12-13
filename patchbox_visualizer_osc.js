@@ -30,7 +30,7 @@ let socket;
 let interval;
 
 // this should be const? not sure how to define it globally as a const tho
-let osc; 
+let osc, gui;
 
 const waveformResolution = 128;
 let waveformTexture0 = {};
@@ -39,6 +39,20 @@ let waveformArray1 = [];
 // rename this now that i'm using it for history 
 let waveformArray = new Float32Array(waveformResolution * 4);
 let requestWaveformTextureUpdate = false;
+
+// PARAMS
+let params = {
+  "reverbMix": 0.5,
+  "distortionPreGain": 1.0,
+  "distortionPostGain": 1.0,
+  "delayMix": 0.1,
+  "delayTime": 0.1,
+  "delayFeedback": 5.0,
+};
+
+function onParamChanged(name) {
+  osc.send(new OSC.Message('/' + name, params[name]));
+}
 
 // start an OSC connection to the node server running osc-js.  
 // this server will pass messages between any browsers running this page, and supercollider
@@ -74,17 +88,16 @@ function initOSC() {
   
   osc.on('open', () =>
   {
-    const message = new OSC.Message('/test', 12.221, 'hello')
-    osc.send(message)
+    //const message = new OSC.Message('/test', 12.221, 'hello')
+    //osc.send(message)
+
+      // initialize osc values
+    for (const key in params) {
+        osc.send(new OSC.Message('/' + key, params[key]) );
+      }
   })
   
   osc.open( )
-}
-
-function initParams() {
-  const queryString = window.location.search;
-  const urlParams = new URLSearchParams(queryString);
-  show_gui = urlParams.has('gui');
 }
 
 function initShaderGlobals(regl)
@@ -99,45 +112,39 @@ function initShaderGlobals(regl)
 
 function initGUI()
 {
-  var gui = new GUI();
+  gui = new GUI();
   let ip_label = { ip: ip };
-  // TODO: can i set the waveform resolution here?
-  var params = {
-    "reverbMix": 0.5,
-    "distortionPreGain": 0.5,
-    "distortionPostGain": 0.5,
-    "delayMix": 0.5,
-    "delayTime": 0.1,
-    "delayFeedback": 5,
-  };
-
+  
   gui.add(params, "reverbMix", 0, 1).onChange(function(value) {
-    osc.send(new OSC.Message('/reverbMix', value) );
-  });
-  gui.add(params, "distortionPreGain", 0, 10).onChange(function(value) {
-    osc.send(new OSC.Message('/distortionPreGain', value) );
-  });
-  gui.add(params, "distortionPostGain", 0, 10).onChange(function(value) {
-    osc.send(new OSC.Message('/distortionPostGain', value) );
-  });
+    onParamChanged('reverbMix');
+  }).listen();
+  gui.add(params, "distortionPreGain", 1, 10).onChange(function(value) {
+    onParamChanged('distortionPreGain');
+  }).listen();
+  gui.add(params, "distortionPostGain", 1, 10).onChange(function(value) {
+    onParamChanged('distortionPostGain');
+  }).listen();
   gui.add(params, "delayMix", 0, 1).onChange(function(value) {
-    osc.send(new OSC.Message('/delayMix', value) );
-  });
+    onParamChanged('delayMix');
+  }).listen();
   gui.add(params, "delayTime", 0, 1).onChange(function(value) {
-    osc.send(new OSC.Message('/delayTime', value) );
-  });
+    onParamChanged('delayTime');
+  }).listen();
   gui.add(params, "delayFeedback", 0, 10).onChange(function(value) {
-    osc.send(new OSC.Message('/delayFeedback', value) );
-  });
-  gui.add(ip_label, 'ip');
+    onParamChanged('delayFeedback');
+  }).listen();
+  gui.add(ip_label, 'ip').listen();
 
-  // add a gui label
-  //gui.add(params, 'waveformResolution', 0, 1024).listen();
-  //gui.add(params, 'waveformResolution', 1, 1024);
-  //gui.add(params, 'waveform0', 0, 1);
-  //gui.add(params, 'waveform1', 0, 1);
+  // populate the ip label
+  const queryString = window.location.search;
+  const urlParams = new URLSearchParams(queryString);
+  show_gui = urlParams.has('gui');
+  if (show_gui) {
+    gui.show();
+  } else {
+    gui.hide();
+  }
 }
-
 
 function updateWaveformTexture()
 {
@@ -198,19 +205,33 @@ function startConnection()
   });
 }
 
-function onTouch(ev, clientPosition)
+function onTouchStart(ev, clientPosition)
 {
   //Tone.start();
+}
+
+function onTouchMove(ev, clientPosition)
+{
+  // normalize the position
+  let x = clientPosition[0] / window.innerWidth;
+  let y = clientPosition[1] / window.innerHeight;
+  // log
+  handleInput(x,y);
+}
+
+function handleInput(x,y) {
+  params.reverbMix = x;
+  params.distortionPreGain = y*10;
+  onParamChanged('reverbMix');
+  onParamChanged('distortionPreGain');
 }
 
 // renderer & canvas-sketch setup  //
 const sketch = ({ canvas, gl, update, render, pause }) =>
 {
-  initParams();
+  initGUI();
   initOSC();
-  if (show_gui) {
-    initGUI();
-  }
+
   // Create regl for handling GL stuff
   const regl = createRegl({ gl, extensions: ['OES_standard_derivatives', 'OES_texture_float'] });
   // A mesh for a flat plane
@@ -218,7 +239,9 @@ const sketch = ({ canvas, gl, update, render, pause }) =>
   initShaderGlobals(regl);
 
   // Let's use this handy utility to handle mouse/touch taps
-  const touches = createTouchListener(canvas).on('start', onTouch);
+  const touchStart = createTouchListener(canvas).on('start', onTouchStart);
+  const touchMove = createTouchListener(canvas).on('move', onTouchMove);
+
 
   const drawQuad = regl({
     // Fragment & Vertex shaders 
@@ -288,7 +311,8 @@ const sketch = ({ canvas, gl, update, render, pause }) =>
     unload()
     {
       // Unload events and tone objects 
-      touches.disable();
+      touchStart.disable();
+      touchMove.disable();
       clearInterval(interval);
     }
   };
