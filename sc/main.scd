@@ -20,7 +20,7 @@ var synth;
 var osc_receive;
 
 	//var solobuffer = Buffer.read(s, "/Users/drew/src/patchbox_visualizer/assets/music/solo.wav");
-	//var solobuffer = Buffer.read(s, "/Users/drew/src/patchbox_visualizer/assets/music/guitar-tuning.wav");
+	var solobuffer = Buffer.read(s, "/Users/drew/src/patchbox_visualizer/assets/music/guitar-tuning.wav");
 
 	var mylerp = { arg a, b, t; MulAdd(a, t) + MulAdd(b, (1.0-t)) };
 
@@ -34,14 +34,22 @@ synth = SynthDef(\testsynth, { |out,
 
 	//var sigB = SinOsc.ar(220);
 	//var sig = MulAdd(SinOsc.ar(400), 0.4,0);
-	//var sig = BufRd.ar(1, solobuffer, Phasor.ar(0, BufRateScale.kr(solobuffer), 0, BufFrames.kr(solobuffer)), 1, 2);
+	var sig = BufRd.ar(1, solobuffer, Phasor.ar(0, BufRateScale.kr(solobuffer), 0, BufFrames.kr(solobuffer)), 1, 2);
 
-	var sig = SoundIn.ar(0);
+	//var sig = SoundIn.ar(0);
 	var dust =  MulAdd( LFNoise1.kr(1, 0.5, 0.5), 10.0, 0.0) ;
 	//var sigD = MulAdd(SinOsc.ar(400), 0.2,0);
 	//sig = sigB; //sigA + sigC; //sigA + sigB; //{Mix.new([sigA,sigB])};
 		//var sig = sigD;
-	var sig_distort = (sig * distortionPreGain * dust).distort;
+
+	// avg distortion volume
+	var rmsSize = 256;
+	var sig_distort_raw = (sig * distortionPreGain * dust).distort;
+	var ampBefore = (RunningSum.ar(sig.squared, rmsSize) / rmsSize).sqrt;
+	var ampAfter = (RunningSum.ar(sig_distort_raw.squared, rmsSize) / rmsSize).sqrt;
+	var sig_distort =  sig_distort_raw * min(10, (ampBefore / max(0.01, ampAfter)));
+
+
 	//var sig_distort = ConstantGainDistortion.ar(sig, distortionPreGain * dust);  // tanh default
 
 	var comb_delay = CombL.ar(sig_distort, 2, delayTime, delayFeedback) ;
@@ -93,33 +101,33 @@ OSCFunc(
 
 	{ arg msg, time, addr, recvPort;
 
-		post('Received message to path: ');
-		msg[0].postln;
+		//post('Received message to path: ');
+		//msg[0].postln;
 
-		post('With value: ');
-		msg[1].postln;
+		//post('With value: ');
+		//msg[1].postln;
 
 		synth.set(\reverbMix, msg[1]);
 }, '/reverbMix');
 	// listen to OSC messages from the browser, via the node.js bridge
 OSCFunc(
 	{ arg msg, time, addr, recvPort;
-		msg[1].postln;
+		//msg[1].postln;
 		synth.set(\distortionPreGain, msg[1]);
 	}, '/distortionPreGain');
 osc_receive = OSCFunc(
 	{ arg msg, time, addr, recvPort;
-		msg[1].postln;
+		//msg[1].postln;
 		synth.set(\delayMix, msg[1]);
 }, '/delayMix');
 osc_receive = OSCFunc(
 	{ arg msg, time, addr, recvPort;
-		msg[1].postln;
+		//msg[1].postln;
 		synth.set(\delayTime, msg[1]);
 }, '/delayTime');
 osc_receive = OSCFunc(
 	{ arg msg, time, addr, recvPort;
-		msg[1].postln;
+		//msg[1].postln;
 		synth.set(\delayFeedback, msg[1]);
 }, '/delayFeedback');
 

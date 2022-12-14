@@ -41,7 +41,6 @@ let waveformArray0 = [];
 let waveformArray1 = [];
 // rename this now that i'm using it for history 
 let waveformArray = new Float32Array(waveformResolution * 4);
-let requestWaveformTextureUpdate = false;
 
 // PARAMS
 let params = {
@@ -139,11 +138,9 @@ function initOSC() {
     if (message.address == "/waveform0")
     {
       waveformArray0 = args;
-      requestWaveformTextureUpdate = true;
     } else if (message.address == "/waveform1")
     {
       waveformArray1 = args;
-      requestWaveformTextureUpdate = true;
     } else {
       console.log("non waveform message:", message.address, message.args); //"message length: " + args.length);
     }
@@ -240,7 +237,7 @@ const settings = {
   animate: true,
   scaleToView: true,
   context: 'webgl',
-  fps: 60,
+  //fps: 60,
   canvas: document.querySelector('.background-canvas')
 };
 
@@ -375,10 +372,7 @@ const sketch = ({ canvas, gl, update, render, pause }) =>
     render({ context, time, deltaTime, width, height, canvas })
     {
       // update UI input
-      if (requestWaveformTextureUpdate) {
-        updateWaveformTexture();
-        requestWaveformTextureUpdate = false;
-      }
+      updateWaveformTexture();
       updateInput(); 
 
       // On each tick, update regl timers and sizes
