@@ -20,7 +20,7 @@ var synth;
 var osc_receive;
 
 	//var solobuffer = Buffer.read(s, "/Users/drew/src/patchbox_visualizer/assets/music/solo.wav");
-	var solobuffer = Buffer.read(s, "/Users/drew/src/patchbox_visualizer/assets/music/guitar-tuning.wav");
+	//var solobuffer = Buffer.read(s, "/Users/drew/src/patchbox_visualizer/assets/music/guitar-tuning.wav");
 
 	var mylerp = { arg a, b, t; MulAdd(a, t) + MulAdd(b, (1.0-t)) };
 
