@@ -31,6 +31,9 @@ let interval;
 
 // this should be const? not sure how to define it globally as a const tho
 let osc, gui;
+let osc_connected = false;
+let touchx = 0.0;
+let touchy = 0.0;
 
 const waveformResolution = 128;
 let waveformTexture0 = {};
@@ -114,7 +117,9 @@ function blendParams(param1, param2, blend)
 }
 
 function onParamChanged(name) {
-  osc.send(new OSC.Message('/' + name, params[name]));
+  if (osc_connected ) {
+    osc.send(new OSC.Message('/' + name, params[name]));
+  }
 }
 
 // start an OSC connection to the node server running osc-js.  
@@ -153,7 +158,7 @@ function initOSC() {
   {
     //const message = new OSC.Message('/test', 12.221, 'hello')
     //osc.send(message)
-
+    osc_connected = true;
       // initialize osc values
     for (const key in params) {
         osc.send(new OSC.Message('/' + key, params[key]) );
@@ -266,20 +271,18 @@ function startConnection()
   });
 }
 
-function onTouchStart(ev, clientPosition)
-{
-  //Tone.start();
-}
-
 function onTouchMove(ev, clientPosition)
 {
   // normalize the position
   let x = clientPosition[0] / window.innerWidth;
   let y = clientPosition[1] / window.innerHeight;
-  handleInput(x,y);
+  touchx = x;
+  touchy = y;
 }
 
-function handleInput(x,y) {
+function updateInput() {
+  let x = touchx;
+  let y = touchy;
   x -= .5;
   y -= .5;
   params.reverbMix = x;
@@ -311,7 +314,6 @@ function handleInput(x,y) {
   // get some clean in the center
   let center = math.smoothstep(0.1, 0.0, r);
   blendParams(params, cleanPreset, center);
-  
 
   onParamChanged('reverbMix');
   onParamChanged('distortionPreGain');
@@ -333,7 +335,6 @@ const sketch = ({ canvas, gl, update, render, pause }) =>
   initShaderGlobals(regl);
 
   // Let's use this handy utility to handle mouse/touch taps
-  const touchStart = createTouchListener(canvas).on('start', onTouchStart);
   const touchMove = createTouchListener(canvas).on('move', onTouchMove);
 
 
@@ -373,10 +374,13 @@ const sketch = ({ canvas, gl, update, render, pause }) =>
   return {
     render({ context, time, deltaTime, width, height, canvas })
     {
+      // update UI input
       if (requestWaveformTextureUpdate) {
         updateWaveformTexture();
         requestWaveformTextureUpdate = false;
       }
+      updateInput(); 
+
       // On each tick, update regl timers and sizes
       regl.poll();
 
@@ -405,7 +409,6 @@ const sketch = ({ canvas, gl, update, render, pause }) =>
     unload()
     {
       // Unload events and tone objects 
-      touchStart.disable();
       touchMove.disable();
       clearInterval(interval);
     }
