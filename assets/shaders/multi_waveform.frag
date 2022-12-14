@@ -5,6 +5,8 @@
 precision highp float;
 uniform float iTime;
 uniform vec2 iResolution;
+uniform vec4 iWaveformRms;
+uniform vec4 iWaveformRmsAccum;
 //
 //
 
@@ -40,6 +42,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 
 	// grab waveform
 	// make uvs that tile twice around the circle
+	theta += iWaveformRmsAccum.g;
 	float thetaUV = (theta +  3.14159) / (1.0 * 3.14159);
 	thetaUV = mod(thetaUV, 1.0);
     vec2 waveform = -texture2D( iWaveformTexture0, vec2(thetaUV,0)).rg;	
@@ -49,21 +52,24 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     
 	//float pinch = 1.0;
 	//float pinch = 2. - abs(uvOriginal.x - .5)*4.;
+	
 	float pinch = pow(sin(thetaUV * 3.14159),.3);
 
 	float ring = sdCircle(uvCentered, .5 + pinch * waveform0 * .5);
-	ring = abs(ring);
+	ring = abs( sin(ring*2.0 - iWaveformRmsAccum.r*.1));
 	//ring = smoothstep(.0,.01,ring);
 	color.r = 1.0 * pow(smoothstep(0.05*pinch,.001*pinch, ring),4.);
 	color.g = .7 * pow(smoothstep(0.2*pinch,.001*pinch, ring),4.);
 	color.b = 0.5 * pow(smoothstep(0.6*pinch,.001*pinch, ring),4.);
 
 	float ring2 = sdCircle(uvCentered, .6 + pinch * waveform1 * .5);
-	ring2 = abs(ring2);
+	//ring2 = abs(ring2);
+	ring2 = abs( sin(ring2*2.0 - iWaveformRmsAccum.g*.1));
+
 	//ring = smoothstep(.0,.01,ring);
 	color.r += 1.0 * pow(smoothstep(0.45*pinch,.001*pinch, ring2),4.);
 	color.g += .7 * pow(smoothstep(0.2*pinch,.001*pinch, ring2),4.);
-	color.b += 0.5 * pow(smoothstep(0.6*pinch,.001*pinch, ring2),4.);
+	color.b += 0.5 * pow(smoothstep(0.6*pinch,.001*pinch, ring2),4.); 
 
 	float ring3 = sdCircle(uvCentered, .0 + waveform1 * .5);
 	//ring = smoothstep(.0,.01,ring);

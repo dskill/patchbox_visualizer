@@ -9,7 +9,7 @@ s.waitForBoot{
 
 // from the wonderful forum post:
 // https://scsynth.org/t/is-it-possible-to-get-the-output-of-a-ugen-as-an-array-of-floats-audio-buffer/6539/14
-var chunkSize = 128; // 2 waveforms at 128 resolution is about the most the PI will handle right now
+var chunkSize = 64; // 2 waveforms at 128 resolution is about the most the PI will handle right now
 var numChunks = 16;
 var relay_buffer0 = Buffer.alloc(s, chunkSize * numChunks);
 var relay_buffer1 = Buffer.alloc(s, chunkSize * numChunks);
@@ -48,7 +48,6 @@ synth = SynthDef(\testsynth, { |out,
 	var ampBefore = (RunningSum.ar(sig.squared, rmsSize) / rmsSize).sqrt;
 	var ampAfter = (RunningSum.ar(sig_distort_raw.squared, rmsSize) / rmsSize).sqrt;
 	var sig_distort =  sig_distort_raw * min(10, (ampBefore / max(0.01, ampAfter)));
-
 
 	//var sig_distort = ConstantGainDistortion.ar(sig, distortionPreGain * dust);  // tanh default
 

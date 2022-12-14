@@ -35,7 +35,9 @@ let osc_connected = false;
 let touchx = 0.0;
 let touchy = 0.0;
 
-const waveformResolution = 128;
+const waveformResolution = 64; 
+let waveformRms = [0,0,0,0];
+let waveformRmsAccum = [0.0,0.0,0.0,0.0];
 let waveformTexture0 = {};
 let waveformArray0 = [];
 let waveformArray1 = [];
@@ -118,6 +120,7 @@ function blendParams(param1, param2, blend)
 function onParamChanged(name) {
   if (osc_connected ) {
     osc.send(new OSC.Message('/' + name, params[name]));
+    //console.log("sending osc message: " + name + " " + params[name]);
   }
 }
 
@@ -201,11 +204,11 @@ function initGUI()
   const queryString = window.location.search;
   const urlParams = new URLSearchParams(queryString);
   show_gui = urlParams.has('gui');
-  if (show_gui) {
+  if (show_gui) { 
     gui.show();
     gui.close();
   } else {
-    gui.hide();
+    gui.hide(); 
   }
 }
 
@@ -213,6 +216,14 @@ function updateWaveformTexture()
 {
     // make an array that concatenates the waveform with itself
     // so that we can draw a line between the two
+    waveformRms = [0,0,0,0];
+
+    // if waveformRmsAccum contains a NaN, set to 0
+    // this is from NaN RMS values at startup
+    if (isNaN(waveformRmsAccum[0])) {
+      waveformRmsAccum = [0,0,0,0];
+    }
+    
     for (let i = 0; i < waveformResolution; i++)
     {
 
@@ -221,7 +232,22 @@ function updateWaveformTexture()
       waveformArray[i * 4 + 1] = waveformArray1[i];
       waveformArray[i * 4 + 2] = waveformArray1[i];
       waveformArray[i * 4 + 3] = waveformArray1[i];
+
+      //RMS
+      waveformRms[0] += waveformArray[i * 4]  * waveformArray[i * 4];
+      waveformRms[1] += waveformArray[i * 4 + 1]  * waveformArray[i * 4 + 1];
+      waveformRms[2] += waveformArray[i * 4 + 2]  * waveformArray[i * 4 + 2];
+      waveformRms[3] += waveformArray[i * 4 + 3]  * waveformArray[i * 4 + 3];
    }
+    waveformRms[0] =  Math.sqrt(waveformRms[0]/waveformResolution);
+    waveformRms[1] =  Math.sqrt(waveformRms[1]/waveformResolution);
+    waveformRms[2] =  Math.sqrt(waveformRms[2]/waveformResolution);
+    waveformRms[3] =  Math.sqrt(waveformRms[3]/waveformResolution);
+
+    waveformRmsAccum[0] += waveformRms[0] ;
+    waveformRmsAccum[1] += waveformRms[1] ;
+    waveformRmsAccum[2] += waveformRms[2] ;
+    waveformRmsAccum[3] += waveformRms[3] ;
 
     // this is probably real slow. I wonder if there's a better way?
     waveformTexture0({
@@ -282,8 +308,9 @@ function updateInput() {
   let y = touchy;
   x -= .5;
   y -= .5;
-  params.reverbMix = x;
 
+  // TODO ADD HEAVY DISTORTION UP
+  
   // turn the x,y coordinate into polar coordinates
   let r = Math.sqrt(x*x + y*y);
   let theta = Math.atan2(y,x);
@@ -324,7 +351,6 @@ const sketch = ({ canvas, gl, update, render, pause }) =>
 {
   initGUI();
   initOSC();
-
   // Create regl for handling GL stuff
   const regl = createRegl({ gl, extensions: ['OES_standard_derivatives', 'OES_texture_float'] });
   // A mesh for a flat plane
@@ -347,7 +373,8 @@ const sketch = ({ canvas, gl, update, render, pause }) =>
       iTime: regl.prop('iTime'),
       time: regl.prop('time'), // no idea why this is still needed :O
       iResolution: regl.prop('iResolution'),
-
+      iWaveformRms: regl.prop('iWaveformRms'),
+      iWaveformRmsAccum: regl.prop('iWaveformRmsAccum'),
       iWaveformTexture0: regl.prop('iWaveformTexture0'),
     },
     // Setup transparency blending
@@ -391,6 +418,8 @@ const sketch = ({ canvas, gl, update, render, pause }) =>
         time: time,
         aspect: width / height,
         iResolution: [canvas.width, canvas.height],
+        iWaveformRms: waveformRms,
+        iWaveformRmsAccum: waveformRmsAccum,
         iWaveformTexture0: waveformTexture0,
       });
 
