@@ -44,7 +44,6 @@ let requestWaveformTextureUpdate = false;
 let params = {
   "reverbMix": 0.5,
   "distortionPreGain": 1.0,
-  "distortionPostGain": 1.0,
   "delayMix": 0.1,
   "delayTime": 0.1,
   "delayFeedback": 5.0,
@@ -52,8 +51,7 @@ let params = {
 
 let distortionPreset = {
   "reverbMix": 0.2,
-  "distortionPreGain": 7.0,
-  "distortionPostGain": 3.0,
+  "distortionPreGain": 10.0,
   "delayMix": 0.02,
   "delayTime": 0.1,
   "delayFeedback": 1.0,
@@ -61,8 +59,7 @@ let distortionPreset = {
 
 let heavyDistortionPreset = {
   "reverbMix": 0.2,
-  "distortionPreGain": 10.0,
-  "distortionPostGain": 10.0,
+  "distortionPreGain": 30.0,
   "delayMix": 0.3,
   "delayTime": 0.1,
   "delayFeedback": 3.0,
@@ -71,7 +68,6 @@ let heavyDistortionPreset = {
 let cleanPreset = {
   "reverbMix": 0.3,
   "distortionPreGain": 1.0,
-  "distortionPostGain": 1.0,
   "delayMix": 0.02,
   "delayTime": 0.1,
   "delayFeedback": 1.0,
@@ -80,25 +76,22 @@ let cleanPreset = {
 let delayPreset = {
   "reverbMix": 0.3,
   "distortionPreGain": 1.0,
-  "distortionPostGain": 1.0,
-  "delayMix": 0.8,
-  "delayTime": 0.2,
-  "delayFeedback": 3.0,
+  "delayMix": 1.0,
+  "delayTime": 0.3,
+  "delayFeedback": 6.0,
 }
 
 let heavyDelayPreset = {
   "reverbMix": 0.3,
   "distortionPreGain": 1.0,
-  "distortionPostGain": 1.0,
-  "delayMix": 0.8,
+  "delayMix": 1.0,
   "delayTime": 0.1,
-  "delayFeedback": 6.0,
+  "delayFeedback": 8.0,
 }
 
 let reverbPreset = {
   "reverbMix": 1.0,
   "distortionPreGain": 1.0,
-  "distortionPostGain": 1.0,
   "delayMix": 0.02,
   "delayTime": 0.1,
   "delayFeedback": 1.0,
@@ -108,9 +101,15 @@ let reverbPreset = {
 
 
 function blendParams(param1, param2, blend)
-{
+{  
   for (const key in params) {
-    params[key] = math.lerp(param1[key], param2[key], blend);
+    // hard code some smoothness
+    if (key == "delayTime" || key == "delayFeedback") {
+      let newValue = math.lerp(param1[key], param2[key], blend);
+      params[key] = math.lerp(params[key], newValue, 0.01);
+    } else {
+      params[key] = math.lerp(param1[key], param2[key], blend);
+    }
   }
 }
 
@@ -182,11 +181,8 @@ function initGUI()
   gui.add(params, "reverbMix", 0, 1).onChange(function(value) {
     onParamChanged('reverbMix');
   }).listen();
-  gui.add(params, "distortionPreGain", 1, 10).onChange(function(value) {
+  gui.add(params, "distortionPreGain", 1, 30).onChange(function(value) {
     onParamChanged('distortionPreGain');
-  }).listen();
-  gui.add(params, "distortionPostGain", 1, 10).onChange(function(value) {
-    onParamChanged('distortionPostGain');
   }).listen();
   gui.add(params, "delayMix", 0, 1).onChange(function(value) {
     onParamChanged('delayMix');
@@ -291,9 +287,6 @@ function handleInput(x,y) {
   // turn the x,y coordinate into polar coordinates
   let r = Math.sqrt(x*x + y*y);
   let theta = Math.atan2(y,x);
- // theta = theta < 0 ? theta + 2*Math.PI : theta;
-  //theta *= 180 / Math.PI;
-  console.log(theta);
 
   // as we go out from center, crank distortion
   blendParams(cleanPreset, distortionPreset, r);
@@ -317,13 +310,11 @@ function handleInput(x,y) {
 
   // get some clean in the center
   let center = math.smoothstep(0.1, 0.0, r);
-  console.log("center: " + center);
   blendParams(params, cleanPreset, center);
   
 
   onParamChanged('reverbMix');
   onParamChanged('distortionPreGain');
-  onParamChanged('distortionPostGain');
   onParamChanged('delayMix');
   onParamChanged('delayTime');
   onParamChanged('delayFeedback');

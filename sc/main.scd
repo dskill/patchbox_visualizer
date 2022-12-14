@@ -22,23 +22,28 @@ var osc_receive;
 	//var solobuffer = Buffer.read(s, "/Users/drew/src/patchbox_visualizer/assets/music/solo.wav");
 	var solobuffer = Buffer.read(s, "/Users/drew/src/patchbox_visualizer/assets/music/guitar-tuning.wav");
 
+	var mylerp = { arg a, b, t; MulAdd(a, t) + MulAdd(b, (1.0-t)) };
+
 synth = SynthDef(\testsynth, { |out,
 		reverbMix = 0.5,
 		distortionPreGain = 5.0,
-		distortionPostGain = 1.0,
 		delayMix = 0.5,
 	    delayTime = 0.5,
 		delayFeedback = 5
 		|
+
 	//var sigB = SinOsc.ar(220);
 	//var sig = MulAdd(SinOsc.ar(400), 0.4,0);
 	//var sig = BufRd.ar(1, solobuffer, Phasor.ar(0, BufRateScale.kr(solobuffer), 0, BufFrames.kr(solobuffer)), 1, 2);
+
 	var sig = SoundIn.ar(0);
 	var dust =  MulAdd( LFNoise1.kr(1, 0.5, 0.5), 10.0, 0.0) ;
 	//var sigD = MulAdd(SinOsc.ar(400), 0.2,0);
 	//sig = sigB; //sigA + sigC; //sigA + sigB; //{Mix.new([sigA,sigB])};
 		//var sig = sigD;
-	var sig_distort = (sig * distortionPreGain * dust).distort * distortionPostGain;
+	//var sig_distort = (sig * distortionPreGain * dust).distort * distortionPostGain;
+	var sig_distort = ConstantGainDistortion.ar(sig, distortionPreGain * dust);  // tanh default
+
 	var comb_delay = CombL.ar(sig_distort, 2, delayTime, delayFeedback) ;
 	var distort_delay_mixed = MulAdd( sig_distort, 1.0 - delayMix) + MulAdd(comb_delay, delayMix);
 	var sig_reverb = FreeVerb.ar(distort_delay_mixed, reverbMix, 0.9, 0.5, 2.0);
@@ -102,11 +107,6 @@ OSCFunc(
 		msg[1].postln;
 		synth.set(\distortionPreGain, msg[1]);
 	}, '/distortionPreGain');
-osc_receive = OSCFunc(
-	{ arg msg, time, addr, recvPort;
-		msg[1].postln;
-		synth.set(\distortionPostGain, msg[1]);
-}, '/distortionPostGain');
 osc_receive = OSCFunc(
 	{ arg msg, time, addr, recvPort;
 		msg[1].postln;
