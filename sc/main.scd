@@ -41,8 +41,8 @@ synth = SynthDef(\testsynth, { |out,
 	//var sigD = MulAdd(SinOsc.ar(400), 0.2,0);
 	//sig = sigB; //sigA + sigC; //sigA + sigB; //{Mix.new([sigA,sigB])};
 		//var sig = sigD;
-	//var sig_distort = (sig * distortionPreGain * dust).distort * distortionPostGain;
-	var sig_distort = ConstantGainDistortion.ar(sig, distortionPreGain * dust);  // tanh default
+	var sig_distort = (sig * distortionPreGain * dust).distort;
+	//var sig_distort = ConstantGainDistortion.ar(sig, distortionPreGain * dust);  // tanh default
 
 	var comb_delay = CombL.ar(sig_distort, 2, delayTime, delayFeedback) ;
 	var distort_delay_mixed = MulAdd( sig_distort, 1.0 - delayMix) + MulAdd(comb_delay, delayMix);
