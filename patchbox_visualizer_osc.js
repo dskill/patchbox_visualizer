@@ -55,16 +55,16 @@ let params = {
 
 let distortionPreset = {
   "reverbMix": 0.2,
-  "distortionPreGain": 10.0,
+  "distortionPreGain": 40.0,
   "delayMix": 0.02,
   "delayTime": 0.1,
   "delayFeedback": 1.0,
 }
 
 let heavyDistortionPreset = {
-  "reverbMix": 0.2,
-  "distortionPreGain": 30.0,
-  "delayMix": 0.3,
+  "reverbMix": 0.3,
+  "distortionPreGain": 200.0,
+  "delayMix": 0.8,
   "delayTime": 0.1,
   "delayFeedback": 3.0,
 }
@@ -222,7 +222,9 @@ function updateWaveformTexture()
     // this is from NaN RMS values at startup
     if (isNaN(waveformRmsAccum[0])) {
       waveformRmsAccum = [0,0,0,0];
-    }
+    } else if (isNaN(waveformRmsAccum[1])) {
+	waveformRmsAccum = [0,0,0,0];
+}
     
     for (let i = 0; i < waveformResolution; i++)
     {
@@ -316,10 +318,11 @@ function updateInput() {
   let theta = Math.atan2(y,x);
 
   // as we go out from center, crank distortion
-  blendParams(cleanPreset, distortionPreset, r);
+  blendParams(cleanPreset, distortionPreset, math.smoothstep(0,.3, -y));
+
   // blow out distortion at outer edges
-  let outerEdge = math.smoothstep(0.5, 0.6, r);
-  blendParams(params, heavyDistortionPreset, outerEdge);
+  let upperEdge = math.smoothstep(0.3, 0.5, -y);
+  blendParams(params, heavyDistortionPreset, upperEdge);
  
   // delay is up top
   // calculate the dot product of (x,y) and the up vector
