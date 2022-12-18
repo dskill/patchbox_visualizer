@@ -32,11 +32,11 @@ synth = SynthDef(\testsynth, { |out,
 		delayFeedback = 5
 		|
 
-	//var sigB = SinOsc.ar(220);
-	//var sig = MulAdd(SinOsc.ar(400), 0.4,0);
+	//var sig = SoundIn.ar(0);
+	var sig = MulAdd(SinOsc.ar(400), 0.4,0);
 	//var sig = BufRd.ar(1, solobuffer, Phasor.ar(0, BufRateScale.kr(solobuffer), 0, BufFrames.kr(solobuffer)), 1, 2);
 
-	var sig = SoundIn.ar(0);
+	
 	var dust =  MulAdd( LFNoise1.kr(1, 0.5, 0.5), 10.0, 0.0) ;
 	//var sigD = MulAdd(SinOsc.ar(400), 0.2,0);
 	//sig = sigB; //sigA + sigC; //sigA + sigB; //{Mix.new([sigA,sigB])};
