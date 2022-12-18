@@ -7,7 +7,7 @@ if [ -n "$pids" ]; then
 fi
 
 # Find and kill all processes with "server.js" in the name
-pids=$(pgrep server.js)
+pids=$(pgrep node)
 if [ -n "$pids" ]; then
   kill $pids
 fi
