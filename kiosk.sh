@@ -1,6 +1,6 @@
 #!/bin/bash
 
-MY_IP=$(ip addr show eth0 | grep -Po 'inet \K[\d.]+')
+MY_IP=$(ip addr show wlan0 | grep -Po 'inet \K[\d.]+')
 
 xset s noblank
 xset s off
