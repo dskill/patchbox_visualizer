@@ -1,7 +1,7 @@
 #!/bin/bash
 
 MY_IP=$(ip addr show wlan0 | grep -Po 'inet \K[\d.]+')
-
+echo "IP: $MY_IP"
 xset s noblank
 xset s off
 xset -dpms
