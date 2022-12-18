@@ -11,8 +11,10 @@ unclutter -idle 0.1 -root &
 sed -i 's/"exited_cleanly":false/"exited_cleanly":true/' /home/$USER/.config/chromium/Default/Preferences
 sed -i 's/"exit_type":"Crashed"/"exit_type":"Normal"/' /home/$USER/.config/chromium/Default/Preferences
 
-git pull
-npm install
-node server.js &
-sclang sc/main.scd &
-/usr/bin/chromium-browser --noerrdialogs --disable-cursor-lock-for-test --disable-infobars --kiosk http://$MY_IP:3000/?gui
+git pull # get the latest code
+npm install # hacky way to make sure we have the latest dependencies
+node server.js & # node server and OSC bridge
+sclang sc/main.scd & # super collider
+/usr/bin/chromium-browser --noerrdialogs --disable-cursor-lock-for-test --disable-infobars --kiosk http://$MY_IP:3000 # web broweser
+#/usr/bin/chromium-browser --noerrdialogs --disable-cursor-lock-for-test --disable-infobars --kiosk http://$MY_IP:3000/?gui
+
