@@ -9,8 +9,6 @@ Environment=XAUTHORITY=/home/patch/.Xauthority
 Type=simple
 ExecStart=/home/patch/src/patchbox_visualizer/kiosk.sh
 Restart=on-abort
-User=patch
-Group=patch
 
 [Install]
 WantedBy=graphical.target
