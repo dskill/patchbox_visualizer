@@ -1,7 +1,6 @@
-# websocket-sketches
-playing with websockets AND @mattdesl's canvas-sketch tool.
-
-websockets need to be configured to talk to a local nodejs server
+# Patchbox Visualizer
+WIP guitar audio effects (with supercollider) and visuals (webgl).
+Runs on desktop (mac/linux) but designed for patchbox OS on Raspberry PI.
 
 ## install
 `npm install` 
@@ -12,16 +11,17 @@ websockets need to be configured to talk to a local nodejs server
 ## build static site
 `canvas-sketch <your_sketch_here> --name index --build --inline`
 
-here's how to build to a inlined html file.  Note that it doesn't bring along static files (assets/blah.mp3) for example
-so you may have to move those where they belong
-`npx canvas-sketch-cli wavejump.js --build --name index --inline`
+## run server
+`node server.js`
 
-## an easy way to deploy static site
-`npm install surge`
-`surge --domain muddled-committee.surge.sh`
+## Super Collider
+files are in /sc
+`sclang sc/...`
 
-# Server
-From NativeWebSocket unity plugin
-https://github.com/endel/NativeWebSocket
+## kiosk.sh
+`sh kiosk.sh` to startup chrome full screen kiosk mode
 
-`npm start` to launch the server
+## Patchbox
+`patchbox` to enter patchbox config
+enable sc-module
+
