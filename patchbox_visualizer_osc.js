@@ -10,20 +10,6 @@ const { Console, debug } = require('console');
 const OSC = require('osc-js');
 const { GUI } = require("dat.gui");
 
-
-//const serverURL = 'ws://192.168.50.125:3000'; // my laptop
-//const serverURL = 'ws://localhost:3000';
-//const serverURL = 'ws://192.168.50.241:3000';
-//const serverURL = 'ws://192.168.50.237:3000'; // my pc
-//const serverURL = 'wss://evergreen-awake-wing.glitch.me'; 
-
-// HACK (or maybe not?)
-// if localhost, send data to server.
-// if IP then listen to data from server
-//let sendMode = false; //window.location.hostname == "localhost";
-//sendMode = false;
-//console.log("App is in " + (sendMode ? "send" : "receive") + " mode");
-
 let ip = window.location.hostname;
 let show_gui = false;
 let socket;
@@ -38,6 +24,8 @@ let touchy = 0.0;
 const waveformResolution = 64; 
 let waveformRms = [0,0,0,0];
 let waveformRmsAccum = [0.0,0.0,0.0,0.0];
+let effectParams0 = [0,0,0,0];
+let effectParams1 = [0,0,0,0];
 let waveformTexture0 = {};
 let waveformArray0 = [];
 let waveformArray1 = [];
@@ -347,6 +335,13 @@ function updateInput() {
   onParamChanged('delayMix');
   onParamChanged('delayTime');
   onParamChanged('delayFeedback');
+
+  // update visual params
+  effectParams0[0] = math.smoothstep(0,1.0,params.reverbMix);
+  effectParams0[1] = params.distortionPreGain / 100.0;
+  effectParams0[2] = params.delayMix;
+  effectParams0[3] = params.delayTime / 5.0;
+  effectParams1[0] = params.delayFeedback;
 }
 
 // renderer & canvas-sketch setup  //
@@ -379,6 +374,8 @@ const sketch = ({ canvas, gl, update, render, pause }) =>
       iWaveformRms: regl.prop('iWaveformRms'),
       iWaveformRmsAccum: regl.prop('iWaveformRmsAccum'),
       iWaveformTexture0: regl.prop('iWaveformTexture0'),
+      iEffectParams0: regl.prop('iEffectParams0'),
+      iEffectParams1: regl.prop('iEffectParams1'),
     },
     // Setup transparency blending
     blend: {
@@ -424,6 +421,8 @@ const sketch = ({ canvas, gl, update, render, pause }) =>
         iWaveformRms: waveformRms,
         iWaveformRmsAccum: waveformRmsAccum,
         iWaveformTexture0: waveformTexture0,
+        iEffectParams0: effectParams0,
+        iEffectParams1: effectParams1,
       });
 
       // Flush pending GL calls for this frame

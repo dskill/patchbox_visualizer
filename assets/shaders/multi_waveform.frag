@@ -7,6 +7,8 @@ uniform float iTime;
 uniform vec2 iResolution;
 uniform vec4 iWaveformRms;
 uniform vec4 iWaveformRmsAccum;
+uniform vec4 iEffectParams0;
+uniform vec4 iEffectParams1;
 //
 //
 
@@ -54,12 +56,11 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     vec3 color = vec3(0.0); 
     
 	//float pinch = 1.0;
-	//float pinch = 2. - abs(uvOriginal.x - .5)*4.;
-	
 	// TODO: Instead of pinching at boundaries, mirror
 	float pinch = pow(sin(thetaUV * 3.14159),.3);
+	//pinch += iEffectParams0.r;
 	//pinch = 1.0;
-	
+
 	
 	float ring = sdCircle(uvCentered, .5 + pinch * waveform0 * 2.0);
 	ring = abs( sin(ring*2.0 - iWaveformRmsAccum.r*1.0));
@@ -84,6 +85,10 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 	color.r += .0 * pow(smoothstep(0.1,.001, ring3),1.);
 	color.g += 0.0 * pow(smoothstep(0.1,.001, ring3),1.);
 	color.b += .5 * pow(smoothstep(1.6,.001, ring3),1.);
+
+	color.r *= .4 + iEffectParams0.x;
+	color.g *= .4 + iEffectParams0.y;
+	color.b *= .4 + iEffectParams0.z;
 	
 	fragColor = vec4(color, 1.0);  
 }

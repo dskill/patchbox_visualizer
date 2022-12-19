@@ -1,5 +1,5 @@
 ~o = NetAddr.new("127.0.0.1", 9912);    // create the NetAddr
-~o.sendMsg("/hello", "there");    // send the application the message "hello" with the
+//~o.sendMsg("/hello", "there");    // send the application the message "hello" with the
 NetAddr.langPort.postln;
 
 s.boot;
@@ -36,7 +36,7 @@ synth = SynthDef(\testsynth, { |out,
 	//var sig = MulAdd(SinOsc.ar(400), 0.4,0);
 	//var sig = BufRd.ar(1, solobuffer, Phasor.ar(0, BufRateScale.kr(solobuffer), 0, BufFrames.kr(solobuffer)), 1, 2);
 
-	
+
 	var dust =  MulAdd( LFNoise1.kr(1, 0.5, 0.5), 10.0, 0.0) ;
 	//var sigD = MulAdd(SinOsc.ar(400), 0.2,0);
 	//sig = sigB; //sigA + sigC; //sigA + sigB; //{Mix.new([sigA,sigB])};
