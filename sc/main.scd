@@ -32,8 +32,8 @@ synth = SynthDef(\testsynth, { |out,
 		delayFeedback = 5
 		|
 
-	//var sig = SoundIn.ar(0);
-	var sig = MulAdd(SinOsc.ar(400), 0.4,0);
+	var sig = SoundIn.ar(0);
+	//var sig = MulAdd(SinOsc.ar(400), 0.4,0);
 	//var sig = BufRd.ar(1, solobuffer, Phasor.ar(0, BufRateScale.kr(solobuffer), 0, BufFrames.kr(solobuffer)), 1, 2);
 
 	
