@@ -1,0 +1,4 @@
+[Desktop Entry]
+Name=PatchboxVisualizer
+Exec=/home/patch/src/patchbox_visualizer/kiosk.sh &>> /home/patch/patchbox_visualizer.log
+User=patch
