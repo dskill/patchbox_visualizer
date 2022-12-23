@@ -211,8 +211,8 @@ function updateWaveformTexture()
     if (isNaN(waveformRmsAccum[0])) {
       waveformRmsAccum = [0,0,0,0];
     } else if (isNaN(waveformRmsAccum[1])) {
-	waveformRmsAccum = [0,0,0,0];
-}
+      waveformRmsAccum = [0,0,0,0];
+    }
     
     for (let i = 0; i < waveformResolution; i++)
     {
@@ -303,7 +303,6 @@ function updateInput() {
   
   // turn the x,y coordinate into polar coordinates
   let r = Math.sqrt(x*x + y*y);
-  let theta = Math.atan2(y,x);
 
   // as we go out from center, crank distortion
   blendParams(cleanPreset, distortionPreset, math.smoothstep(0,.3, -y));
@@ -314,16 +313,16 @@ function updateInput() {
  
   // delay is up top
   // calculate the dot product of (x,y) and the up vector
-  let down = Math.sin(theta);
-  down = math.smoothstep(0.5, 1.0, down);
+  let down = y;
+  down = math.smoothstep(0.0, 0.5, down);
   blendParams(params, delayPreset, down);
 
-  let right = Math.sin(theta + Math.PI/2.0);
-  right = math.smoothstep(0.75, 1.0, right);
+  let right = x;
+  right = math.smoothstep(0.0, .5, right);
   blendParams(params, heavyDelayPreset, right);
 
-  let left = Math.sin(theta - Math.PI/2.0);
-  left = math.smoothstep(0.75, 1.0, left);
+  let left = -x;
+  left = math.smoothstep(0.0, .5, left);
   blendParams(params, reverbPreset, left);
 
   // get some clean in the center
@@ -338,9 +337,9 @@ function updateInput() {
 
   // update visual params
   effectParams0[0] = math.smoothstep(0,1.0,params.reverbMix);
-  effectParams0[1] = params.distortionPreGain / 100.0;
+  effectParams0[1] = params.distortionPreGain / 200.0;
   effectParams0[2] = params.delayMix;
-  effectParams0[3] = params.delayTime / 5.0;
+  effectParams0[3] = math.smoothstep(.1,.15, params.delayTime);
   effectParams1[0] = params.delayFeedback;
 }
 

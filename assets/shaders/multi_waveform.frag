@@ -28,10 +28,42 @@ vec3 hsv2rgb_smooth( in vec3 c )
 	return c.z * mix( vec3(1.0), rgb, c.y);
 }
 
+// FROM https://iquilezles.org/articles/distfunctions2d/
+float ndot(vec2 a, vec2 b ) { return a.x*b.x - a.y*b.y; }
+
 float sdCircle( vec2 p, float r )
 {
     return length(p) - r;
 }
+
+float sdRhombus( in vec2 p, in vec2 b ) 
+{
+    p = abs(p);
+    float h = clamp( ndot(b-2.0*p,b)/dot(b,b), -1.0, 1.0 );
+    float d = length( p-0.5*b*vec2(1.0-h,1.0+h) );
+    return d * sign( p.x*b.y + p.y*b.x - b.x*b.y );
+}
+
+float sdEquilateralTriangle( in vec2 p )
+{
+    const float k = sqrt(3.0);
+    p.x = abs(p.x) - 1.0;
+    p.y = p.y + 1.0/k;
+    if( p.x+k*p.y>0.0 ) p = vec2(p.x-k*p.y,-k*p.x-p.y)/2.0;
+    p.x -= clamp( p.x, -2.0, 0.0 );
+    return -length(p)*sign(p.y);
+}
+
+float sdEffectBlend( in vec2 p, float radius, float waveform) {
+	waveform *= 1.0; // scale down amplituce
+	float d = 0.0;
+	d = p.y + waveform;
+	d = mix(d, sdCircle(p, radius + waveform), iEffectParams0.x); // reverb
+	d = mix(d, sdEquilateralTriangle(p + abs(waveform)), iEffectParams0.y); // distortion
+	d = mix(d, sdRhombus(p, vec2(radius + waveform, radius + waveform)), iEffectParams0.w); 
+	d = mix(d, sin(d*3.0), iEffectParams0.z); // delay
+	return d;
+} 
 
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {    
@@ -39,40 +71,44 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
     vec2 uvCentered = -1.0 + 2.0 * uvOriginal;
 	// pinch the uv's a bit to make up for the HD aspect ratio (yes, hack)
 	uvCentered.x *= (16.0/9.0);
-	float r = length(uvOriginal);
-	float theta = atan(uvCentered.y, uvCentered.x);
-
+	//float r = length(uvOriginal);
+	//float theta = atan(uvCentered.y, uvCentered.x);
 	// grab waveform
 	// make uvs that tile twice around the circle
-	theta += iWaveformRmsAccum.g;
-	theta = mod(theta, 3.14159*2.0);
-	float thetaUV = (theta +  3.14159) / (1.0 * 3.14159);
-	thetaUV = mod(thetaUV, 1.0);
+	//theta += iWaveformRmsAccum.g;
+	//theta = mod(theta, 3.14159*2.0);
+	//float thetaUV = (theta +  3.14159) / (1.0 * 3.14159);
+	//thetaUV = mod(thetaUV, 1.0);
 //	thetaUV *= 2.0;
 	//if (thetaUV > 1.0) thetaUV = 1.0 - thetaUV;
-    vec2 waveform = -texture2D( iWaveformTexture0, vec2(thetaUV,0)).rg;	
+
+	float waveformU =  abs(sin(uvOriginal.x * 5.0 + .1*iWaveformRmsAccum.g)); //mod(uvOriginal.x * 3.0, 1.0);
+    vec2 waveform = -texture2D( iWaveformTexture0, vec2(waveformU,0)).rg;	
 	float waveform0 = waveform.r;
 	float waveform1 = waveform.g;
     vec3 color = vec3(0.0); 
     
 	//float pinch = 1.0;
 	// TODO: Instead of pinching at boundaries, mirror
-	float pinch = pow(sin(thetaUV * 3.14159),.3);
+	//float pinch = pow(sin(thetaUV * 3.14159),.3);
+	float pinch = 1.0;
 	//pinch += iEffectParams0.r;
 	//pinch = 1.0;
 
 	
-	float ring = sdCircle(uvCentered, .5 + pinch * waveform0 * 2.0);
-	ring = abs( sin(ring*2.0 - iWaveformRmsAccum.r*1.0));
+	float ring = sdEffectBlend(uvCentered, pinch, waveform0);
+	ring = abs( sin(ring*2.0 - iWaveformRmsAccum.r*.1));
 	ring = pow(ring, 1.2);
 	//ring = smoothstep(.0,.01,ring);
 	color.r = 1.0 * pow(smoothstep(0.15*pinch,.001*pinch, ring),4.);
 	color.g = .7 * pow(smoothstep(0.3*pinch,.001*pinch, ring),4.);
 	color.b = 0.5 * pow(smoothstep(0.8*pinch,.001*pinch, ring),4.);
 
-	float ring2 = sdCircle(uvCentered, .6 + pinch * waveform1 * 2.0);
+	//float ring2 = sdCircle(uvCentered, .6 + pinch * waveform1 * 2.0);
+	float ring2 = sdEffectBlend(uvCentered, pinch, waveform1);
+
 	//ring2 = abs(ring2);
-	ring2 = abs( sin(ring2*2.0 - abs(iWaveformRmsAccum.g)*2.0));
+	ring2 = abs( sin(ring2*2.0 - abs(iWaveformRmsAccum.g)*.2));
 	ring2 = pow(ring2, 1.2);
 
 	//ring = smoothstep(.0,.01,ring);
@@ -80,15 +116,15 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 	color.g += .7 * pow(smoothstep(0.1*pinch,.001*pinch, ring2),4.);
 	color.b += 0.2 * pow(smoothstep(0.8*pinch,.001*pinch, ring2),4.); 
 
-	float ring3 = sdCircle(uvCentered, .0 + waveform1 * .5);
+	float ring3 = sdEffectBlend(uvCentered, 0.0, 0.0);
 	//ring = smoothstep(.0,.01,ring);
-	color.r += .0 * pow(smoothstep(0.1,.001, ring3),1.);
+	color.r += 0.13 * pow(smoothstep(0.1,.001, ring3),1.);
 	color.g += 0.0 * pow(smoothstep(0.1,.001, ring3),1.);
 	color.b += .5 * pow(smoothstep(1.6,.001, ring3),1.);
 
-	color.r *= .4 + iEffectParams0.x;
-	color.g *= .4 + iEffectParams0.y;
-	color.b *= .4 + iEffectParams0.z;
+	//color.r *= .4 + iEffectParams0.x;
+	//color.g *= .4 + iEffectParams0.y;
+	//color.b *= .4 + iEffectParams0.z;
 	
 	fragColor = vec4(color, 1.0);  
 }
