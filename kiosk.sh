@@ -1,5 +1,15 @@
 #!/bin/bash
 
+# Install the wait-for-it script (if not already installed)
+if ! [ -x "$(command -v wait-for-it)" ]; then
+  apt-get update && apt-get install -y curl
+  curl -sL https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh -o /usr/local/bin/wait-for-it
+  chmod +x /usr/local/bin/wait-for-it
+fi
+
+# Wait for the WiFi connection to be established
+wait-for-it wlan0:80
+
 MY_IP=$(ip addr show wlan0 | grep -Po 'inet \K[\d.]+')
 echo "IP: $MY_IP"
 xset s noblank
@@ -13,7 +23,7 @@ sed -i 's/"exit_type":"Crashed"/"exit_type":"Normal"/' /home/$USER/.config/chrom
 
 cd /home/patch/src/patchbox_visualizer
 pwd > /home/patch/logs/info.log
-$MY_IP >> /home/patch/logs/info.log
+echo "Detected IP: $MY_IP" >> /home/patch/logs/info.log
 
 git pull # get the latest code
 npm install # hacky way to make sure we have the latest dependencies
