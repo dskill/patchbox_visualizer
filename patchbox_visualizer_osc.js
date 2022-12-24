@@ -11,7 +11,14 @@ const OSC = require('osc-js');
 const { GUI } = require("dat.gui");
 
 let ip = window.location.hostname;
-let show_gui = false;
+
+// grab params from the url
+const queryString = window.location.search;
+const urlParams = new URLSearchParams(queryString);
+let gui_url_param = urlParams.has('gui');
+let auto_url_param  = urlParams.has('auto');
+let init_with_precip_url_param  = urlParams.has('init_with_precip');
+let allow_touch_url_param  = urlParams.has('allow_touch');
 let socket;
 let interval;
 
@@ -90,7 +97,39 @@ let reverbPreset = {
 }
 
 
+// very experimental
+async function initPrecip() {
+  const response = await fetch('https://api.open-meteo.com/v1/forecast?latitude=47.61&longitude=-122.33&hourly=temperature_2m,precipitation&temperature_unit=fahrenheit&timeformat=unixtime&timezone=auto');
+  const data = await response.json();
+  const currentUnixTime = Math.floor(Date.now() / 1000);
+  // find the closest time in data.hourly.time
+  let closestTime = 0;
+  let closestTimeIndex = 0;
+  for (let i = 0; i < data.hourly.time.length; i++) {
+    if (Math.abs(data.hourly.time[i] - currentUnixTime) < Math.abs(closestTime - currentUnixTime)) {
+      closestTime = data.hourly.time[i];
+      closestTimeIndex = i;
+    }
+  }
+  //console.log("closest time: " + closestTime);
+  //console.log("closest time index: " + closestTimeIndex);
+  const currentPrecipitation = data.hourly.precipitation[closestTimeIndex];
+  console.log("current precipitation: " + currentPrecipitation);
+  const currentTemperature = data.hourly.temperature_2m[closestTimeIndex];
+  console.log("current temperature: " + currentTemperature);
+  let precipBlend = math.smoothstep(0, 0.5, currentPrecipitation);
+  console.log("precip blend: " + precipBlend);
+  let tempBlend = math.smoothstep(30, 80, currentTemperature);
+  console.log("temp blend: " + tempBlend);
+  blendParams(reverbPreset, heavyDelayPreset, tempBlend);
+  blendParams(params, heavyDistortionPreset, precipBlend);
 
+  onParamChanged('reverbMix');
+  onParamChanged('distortionPreGain');
+  onParamChanged('delayMix');
+  onParamChanged('delayTime');
+  onParamChanged('delayFeedback');
+}
 
 function blendParams(param1, param2, blend)
 {  
@@ -169,12 +208,12 @@ function initShaderGlobals(regl)
 function initGUI()
 {
   gui = new GUI();
-  let ip_label = { ip: ip };
+  let ip_label = { ip: ip + ":3000" };
   
   gui.add(params, "reverbMix", 0, 1).onChange(function(value) {
     onParamChanged('reverbMix');
   }).listen();
-  gui.add(params, "distortionPreGain", 1, 30).onChange(function(value) {
+  gui.add(params, "distortionPreGain", 1, 200).onChange(function(value) {
     onParamChanged('distortionPreGain');
   }).listen();
   gui.add(params, "delayMix", 0, 1).onChange(function(value) {
@@ -189,10 +228,7 @@ function initGUI()
   gui.add(ip_label, 'ip').listen();
 
   // populate the ip label
-  const queryString = window.location.search;
-  const urlParams = new URLSearchParams(queryString);
-  show_gui = urlParams.has('gui');
-  if (show_gui) { 
+  if (gui_url_param) { 
     gui.show();
     gui.close();
   } else {
@@ -293,6 +329,17 @@ function onTouchMove(ev, clientPosition)
   touchy = y;
 }
 
+function updateAutoInput(time) {
+
+  blendParams(cleanPreset, heavyDistortionPreset, math.smoothstep(0,.3, Math.sin(time)));
+
+  onParamChanged('reverbMix');
+  onParamChanged('distortionPreGain');
+  onParamChanged('delayMix');
+  onParamChanged('delayTime');
+  onParamChanged('delayFeedback');
+}
+
 function updateInput() {
   let x = touchx;
   let y = touchy;
@@ -334,13 +381,6 @@ function updateInput() {
   onParamChanged('delayMix');
   onParamChanged('delayTime');
   onParamChanged('delayFeedback');
-
-  // update visual params
-  effectParams0[0] = math.smoothstep(0,1.0,params.reverbMix);
-  effectParams0[1] = params.distortionPreGain / 200.0;
-  effectParams0[2] = params.delayMix;
-  effectParams0[3] = math.smoothstep(.1,.15, params.delayTime);
-  effectParams1[0] = params.delayFeedback;
 }
 
 // renderer & canvas-sketch setup  //
@@ -348,6 +388,10 @@ const sketch = ({ canvas, gl, update, render, pause }) =>
 {
   initGUI();
   initOSC();
+
+  if (init_with_precip_url_param) {
+    initPrecip();
+  }
   // Create regl for handling GL stuff
   const regl = createRegl({ gl, extensions: ['OES_standard_derivatives', 'OES_texture_float'] });
   // A mesh for a flat plane
@@ -356,7 +400,6 @@ const sketch = ({ canvas, gl, update, render, pause }) =>
 
   // Let's use this handy utility to handle mouse/touch taps
   const touchMove = createTouchListener(canvas).on('move', onTouchMove);
-
 
   const drawQuad = regl({
     // Fragment & Vertex shaders 
@@ -397,9 +440,24 @@ const sketch = ({ canvas, gl, update, render, pause }) =>
   return {
     render({ context, time, deltaTime, width, height, canvas })
     {
+      if (allow_touch_url_param) {
+        updateInput(); 
+      }
+
+      if (auto_url_param) {
+        updateAutoInput(time);
+      }
+
       // update UI input
       updateWaveformTexture();
-      updateInput(); 
+
+      // map params to shader globals
+      // update visual params
+      effectParams0[0] = math.smoothstep(0,1.0,params.reverbMix);
+      effectParams0[1] = params.distortionPreGain / 200.0;
+      effectParams0[2] = params.delayMix;
+      effectParams0[3] = math.smoothstep(.1,.15, params.delayTime);
+      effectParams1[0] = params.delayFeedback;
 
       // On each tick, update regl timers and sizes
       regl.poll();

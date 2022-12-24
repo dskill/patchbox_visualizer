@@ -27,4 +27,4 @@ npm install # hacky way to make sure we have the latest dependencies
 node /home/patch/src/patchbox_visualizer/server.js &> /home/patch/logs/server.log & # node server and OSC bridge
 sclang /home/patch/src/patchbox_visualizer/sc/main.scd &> /home/patch/logs/supercollider.log & # super collider
 #/usr/bin/chromium-browser --noerrdialogs --disable-cursor-lock-for-test --disable-infobars --kiosk http://$MY_IP:3000 # web broweser
-/usr/bin/chromium-browser --noerrdialogs --disable-cursor-lock-for-test --disable-infobars --kiosk http://$MY_IP:3000/?gui
+/usr/bin/chromium-browser --noerrdialogs --disable-cursor-lock-for-test --disable-infobars --kiosk http://$MY_IP:3000/?gui&init_with_precip&allow_touch
