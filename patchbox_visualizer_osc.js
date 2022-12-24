@@ -327,6 +327,10 @@ function onTouchMove(ev, clientPosition)
   let y = clientPosition[1] / window.innerHeight;
   touchx = x;
   touchy = y;
+
+  if (allow_touch_url_param) {
+    updateInput(); 
+  }
 }
 
 function updateAutoInput(time) {
@@ -440,10 +444,6 @@ const sketch = ({ canvas, gl, update, render, pause }) =>
   return {
     render({ context, time, deltaTime, width, height, canvas })
     {
-      if (allow_touch_url_param) {
-        updateInput(); 
-      }
-
       if (auto_url_param) {
         updateAutoInput(time);
       }
