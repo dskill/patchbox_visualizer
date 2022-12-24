@@ -9,6 +9,7 @@ const createTouchListener = require('touches');
 const { Console, debug } = require('console');
 const OSC = require('osc-js');
 const { GUI } = require("dat.gui");
+const suncalc = require('suncalc');
 
 let ip = window.location.hostname;
 
@@ -121,8 +122,32 @@ async function initPrecip() {
   console.log("precip blend: " + precipBlend);
   let tempBlend = math.smoothstep(30, 80, currentTemperature);
   console.log("temp blend: " + tempBlend);
-  blendParams(reverbPreset, heavyDelayPreset, tempBlend);
-  blendParams(params, heavyDistortionPreset, precipBlend);
+  
+  //
+  // amount of daylight does stuff
+  //
+  const now = new Date(Date.now());
+  // construct a fake now for testing
+  //const now = new Date(2022, 12, 23, 15, 0, 0, 0);
+
+  const latitude = 47.42;  // seattle
+  const longitude = -122.08;
+
+  const times = suncalc.getTimes(now, latitude, longitude);
+
+  const sunrise = times.sunrise;
+  const sunset = times.sunset;
+
+  const nowMilliseconds = now.getTime();
+  const sunriseMilliseconds = sunrise.getTime();
+  const sunsetMilliseconds = sunset.getTime();
+  const fractionOfDaylightPassed = (nowMilliseconds - sunriseMilliseconds) / (sunsetMilliseconds - sunriseMilliseconds);
+  const daylight = Math.max(Math.sin(fractionOfDaylightPassed * 3.14159),0.0);
+  console.log("daylight blend: " + daylight);
+
+  blendParams(reverbPreset, cleanPreset, daylight); // reverb at night
+  blendParams(heavyDelayPreset, params, tempBlend); // delay when cold
+  //blendParams(params, heavyDistortionPreset, precipBlend); // distortion when wet
 
   onParamChanged('reverbMix');
   onParamChanged('distortionPreGain');
