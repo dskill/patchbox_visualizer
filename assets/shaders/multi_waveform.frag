@@ -58,10 +58,12 @@ float sdEffectBlend( in vec2 p, float radius, float waveform) {
 	waveform *= 1.0; // scale down amplituce
 	float d = 0.0;
 	d = p.y + waveform;
+	
 	d = mix(d, sdCircle(p, radius + waveform), iEffectParams0.x); // reverb
 	d = mix(d, sdEquilateralTriangle(p + abs(waveform)), iEffectParams0.y); // distortion
 	d = mix(d, sdRhombus(p, vec2(radius + waveform, radius + waveform)), iEffectParams0.w); 
 	d = mix(d, sin(d*3.0), iEffectParams0.z); // delay
+	
 	return d;
 } 
 
@@ -83,7 +85,9 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 	//if (thetaUV > 1.0) thetaUV = 1.0 - thetaUV;
 
 	float waveformU =  abs(sin(uvOriginal.x * 5.0 + .1*iWaveformRmsAccum.g)); //mod(uvOriginal.x * 3.0, 1.0);
-    vec2 waveform = -texture2D( iWaveformTexture0, vec2(waveformU,0)).rg;	
+    //vec2 waveform = -texture2D( iWaveformTexture0, vec2(waveformU,0)).rg;	
+	vec2 waveform = -texture2D( iWaveformTexture0, vec2(uvOriginal.x,0)).rg;	
+
 	float waveform0 = waveform.r;
 	float waveform1 = waveform.g;
     vec3 color = vec3(0.0); 
@@ -97,8 +101,10 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 
 	
 	float ring = sdEffectBlend(uvCentered, pinch, waveform0);
-	ring = abs( sin(ring*2.0 - iWaveformRmsAccum.r*.1));
+	//ring = abs( sin(ring*2.0 - iWaveformRmsAccum.r*.1));
+	ring -= .5;
 	ring = pow(ring, 1.2);
+	
 	//ring = smoothstep(.0,.01,ring);
 	color.r = 1.0 * pow(smoothstep(0.15*pinch,.001*pinch, ring),4.);
 	color.g = .7 * pow(smoothstep(0.3*pinch,.001*pinch, ring),4.);
@@ -106,10 +112,12 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 
 	//float ring2 = sdCircle(uvCentered, .6 + pinch * waveform1 * 2.0);
 	float ring2 = sdEffectBlend(uvCentered, pinch, waveform1);
+	ring2 += .5;
+	
 
 	//ring2 = abs(ring2);
-	ring2 = abs( sin(ring2*2.0 - abs(iWaveformRmsAccum.g)*.2));
-	ring2 = pow(ring2, 1.2);
+	//ring2 = abs( sin(ring2*2.0 - abs(iWaveformRmsAccum.g)*.2));
+	ring2 = pow(.5-ring2, 1.2);
 
 	//ring = smoothstep(.0,.01,ring);
 	color.r += 1.0 * pow(smoothstep(0.25*pinch,.001*pinch, ring2),4.);

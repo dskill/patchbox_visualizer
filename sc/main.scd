@@ -9,7 +9,7 @@ s.waitForBoot{
 
 // from the wonderful forum post:
 // https://scsynth.org/t/is-it-possible-to-get-the-output-of-a-ugen-as-an-array-of-floats-audio-buffer/6539/14
-var chunkSize = 64; // 2 waveforms at 128 resolution is about the most the PI will handle right now
+var chunkSize = 1024; // 2 waveforms at 128 resolution is about the most the PI will handle right now
 var numChunks = 16;
 var relay_buffer0 = Buffer.alloc(s, chunkSize * numChunks);
 var relay_buffer1 = Buffer.alloc(s, chunkSize * numChunks);
@@ -19,7 +19,7 @@ var relay_buffer2 = Buffer.alloc(s, 4096 * 2);
 var synth;
 var osc_receive;
 
-	//var solobuffer = Buffer.read(s, "/Users/drew/src/patchbox_visualizer/assets/music/solo.wav");
+	var solobuffer = Buffer.read(s, "/Users/drew/src/patchbox_visualizer/assets/music/solo.wav");
 	//var solobuffer = Buffer.read(s, "/Users/drew/src/patchbox_visualizer/assets/music/guitar-tuning.wav");
 
 	var mylerp = { arg a, b, t; MulAdd(a, t) + MulAdd(b, (1.0-t)) };
@@ -32,9 +32,9 @@ synth = SynthDef(\testsynth, { |out,
 		delayFeedback = 5
 		|
 
-	var sig = SoundIn.ar(0);
+	//var sig = SoundIn.ar(0);
 	//var sig = MulAdd(SinOsc.ar(400), 0.4,0);
-	//var sig = BufRd.ar(1, solobuffer, Phasor.ar(0, BufRateScale.kr(solobuffer), 0, BufFrames.kr(solobuffer)), 1, 2);
+	var sig = BufRd.ar(1, solobuffer, Phasor.ar(0, BufRateScale.kr(solobuffer), 0, BufFrames.kr(solobuffer)), 1, 2);
 
 
 	var dust =  MulAdd( LFNoise1.kr(1, 0.5, 0.5), 10.0, 0.0) ;
@@ -62,13 +62,15 @@ synth = SynthDef(\testsynth, { |out,
 	// Trig.ar is not needed
 	var trig = HPZ1.ar(phase) < 0;
 	var partition = PulseCount.ar(trig) % numChunks;
-	var phase_reset_trig = Impulse.ar(30);
+	var phase_reset_trig = Impulse.ar(10);
 	// write to buffers that will contain the waveform data we send via OSC
 	BufWr.ar(sig, relay_buffer0, phase + (chunkSize * partition));
 	BufWr.ar(final_sig, relay_buffer1, phase + (chunkSize * partition));
 
-	//SendReply.ar(trig, '/buffer_refresh', partition);
-	SendReply.ar(phase_reset_trig, '/buffer_refresh', partition);
+	// send data as soon as it's available and orrect
+	SendReply.ar(trig, '/buffer_refresh', partition);
+	// or send data at a specified framerate. This is wrong if you're sending a real audio signal
+	//SendReply.ar(phase_reset_trig, '/buffer_refresh', partition);
 
 	// what audio to return from the function
 	Out.ar(out, final_sig); //sig_reverb + sig);

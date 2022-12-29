@@ -11,7 +11,7 @@ const OSC = require('osc-js');
 const { GUI } = require("dat.gui");
 const suncalc = require('suncalc');
 
-let ip = window.location.hostname;
+let osc_bridge_ip = window.location.hostname;
 
 // grab params from the url
 const queryString = window.location.search;
@@ -29,14 +29,21 @@ let osc_connected = false;
 let touchx = 0.0;
 let touchy = 0.0;
 
-const waveformResolution = 64; 
+let osc_updates = 0;
+let osc_update_timer = 0;
+let waveform_update_timer = 0;
+
+const waveformResolution = 4096; 
 let waveformRms = [0,0,0,0];
 let waveformRmsAccum = [0.0,0.0,0.0,0.0];
 let effectParams0 = [0,0,0,0];
 let effectParams1 = [0,0,0,0];
-let waveformTexture0 = {};
+let waveformTexture0 = {};  
 let waveformArray0 = [];
+waveformArray0.length = waveformResolution;
 let waveformArray1 = [];
+waveformArray1.length = waveformResolution;
+
 // rename this now that i'm using it for history 
 let waveformArray = new Float32Array(waveformResolution * 4);
 
@@ -181,7 +188,7 @@ function onParamChanged(name) {
 function initOSC() {
 
   const options = {
-    host: ip,    // @param {string} Hostname of WebSocket server
+    host: osc_bridge_ip,    // @param {string} Hostname of WebSocket server
     port: 8080           // @param {number} Port of WebSocket server
   }
   osc = new OSC({ plugin: new OSC.WebsocketClientPlugin(options) })
@@ -189,13 +196,18 @@ function initOSC() {
   osc.on('*', message =>
   {
     let args = message.args;
-  
+    
     if (message.address == "/waveform0")
     {
-      waveformArray0 = args;
+      // add new waveform array elements to the end of the array.
+      waveformArray0 = waveformArray0.concat(args);
+      waveformArray0.splice(0, args.length);
+      
+      osc_updates += 1;      
     } else if (message.address == "/waveform1")
     {
-      waveformArray1 = args;
+      waveformArray1 = waveformArray1.concat(args);
+      waveformArray1.splice(0, args.length);
     } else {
       console.log("non waveform message:", message.address, message.args); //"message length: " + args.length);
     }
@@ -226,14 +238,14 @@ function initShaderGlobals(regl)
   waveformTexture0 = regl.texture({
     shape: [waveformResolution, 1],
     format: 'rgba',
-    type: 'float32'
+    type: 'float32',
   });
 }
 
 function initGUI()
 {
   gui = new GUI();
-  let ip_label = { ip: ip + ":3000" };
+  let ip_label = { ip: osc_bridge_ip + ":3000" };
   
   gui.add(params, "reverbMix", 0, 1).onChange(function(value) {
     onParamChanged('reverbMix');
@@ -469,13 +481,28 @@ const sketch = ({ canvas, gl, update, render, pause }) =>
   return {
     render({ context, time, deltaTime, width, height, canvas })
     {
+      osc_update_timer += deltaTime;
+      waveform_update_timer+= deltaTime;
+      console.log("OSC FPS: " + osc_updates / osc_update_timer);
+      if (osc_update_timer > 1.0) {
+        osc_update_timer = 0;
+        osc_updates = 0;
+      }
+
       if (auto_url_param) {
         updateAutoInput(time);
       }
 
       // update UI input
+      /*
+      if (waveform_update_timer > .1) {
+        waveform_update_timer = 0;
+        updateWaveformTexture();
+      }
+      */
       updateWaveformTexture();
 
+      
       // map params to shader globals
       // update visual params
       effectParams0[0] = math.smoothstep(0,1.0,params.reverbMix);

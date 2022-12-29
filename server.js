@@ -6,6 +6,10 @@ const OSC = require('osc-js');
 const ip = require("ip");
 
 const myIP = ip.address();
+// if myIP is localhost, like below, then things will work w/out wifi
+// otherwise the IP in the browser location bar is wrong and it doesn't
+// this should be fixed at some point. Maybe by using the ip module...
+//const myIP = "127.0.0.1";
 const app = express();
 const port = 3000;
 
@@ -56,7 +60,7 @@ let options = {
   },
   // this is this node server, listening to WS messages from the browser
   wsServer: {
-    host: myIP,    // @param {string} Hostname of WebSocket server
+    host: myIP, // 'localhost',    // @param {string} Hostname of WebSocket server
     port: 8080            // @param {number} Port of WebSocket server
   },
   // this is the supercollider client, where we send messages to supercollider
