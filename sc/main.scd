@@ -19,7 +19,7 @@ var relay_buffer2 = Buffer.alloc(s, 4096 * 2);
 var synth;
 var osc_receive;
 
-	var solobuffer = Buffer.read(s, "/Users/drew/src/patchbox_visualizer/assets/music/solo.wav");
+	//var solobuffer = Buffer.read(s, "/Users/drew/src/patchbox_visualizer/assets/music/solo.wav");
 	//var solobuffer = Buffer.read(s, "/Users/drew/src/patchbox_visualizer/assets/music/guitar-tuning.wav");
 
 	var mylerp = { arg a, b, t; MulAdd(a, t) + MulAdd(b, (1.0-t)) };
@@ -32,9 +32,9 @@ synth = SynthDef(\testsynth, { |out,
 		delayFeedback = 5
 		|
 
-	//var sig = SoundIn.ar(0);
+	var sig = SoundIn.ar(0);
 	//var sig = MulAdd(SinOsc.ar(400), 0.4,0);
-	var sig = BufRd.ar(1, solobuffer, Phasor.ar(0, BufRateScale.kr(solobuffer), 0, BufFrames.kr(solobuffer)), 1, 2);
+	//var sig = BufRd.ar(1, solobuffer, Phasor.ar(0, BufRateScale.kr(solobuffer), 0, BufFrames.kr(solobuffer)), 1, 2);
 
 
 	var dust =  MulAdd( LFNoise1.kr(1, 0.5, 0.5), 10.0, 0.0) ;
