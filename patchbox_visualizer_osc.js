@@ -30,10 +30,11 @@ let touchx = 0.0;
 let touchy = 0.0;
 
 let osc_updates = 0;
+let osc_samples = 0;
 let osc_update_timer = 0;
 let waveform_update_timer = 0;
 
-const waveformResolution = 4096; 
+const waveformResolution = 512; 
 let waveformRms = [0,0,0];
 let waveformRmsAccum = [0.0,0.0,0.0];
 let effectParams0 = [0,0,0,0];
@@ -203,7 +204,8 @@ function initOSC() {
       waveformArray0 = waveformArray0.concat(args);
       waveformArray0.splice(0, args.length);
       
-      osc_updates += 1;      
+      osc_updates += 1;  
+      osc_samples += args.length;    
     } else if (message.address == "/waveform1")
     {
       waveformArray1 = waveformArray1.concat(args);
@@ -481,10 +483,12 @@ const sketch = ({ canvas, gl, update, render, pause }) =>
     {
       osc_update_timer += deltaTime;
       waveform_update_timer+= deltaTime;
-      console.log("OSC FPS: " + osc_updates / osc_update_timer);
       if (osc_update_timer > 1.0) {
+        console.log("OSC SAMPLES: " + osc_samples);
+        console.log("OSC FPS: " + osc_updates / osc_update_timer);
         osc_update_timer = 0;
         osc_updates = 0;
+        osc_samples = 0;
       }
 
       if (auto_url_param) {
@@ -492,7 +496,7 @@ const sketch = ({ canvas, gl, update, render, pause }) =>
       }
 
       // update UI input
-      if (waveform_update_timer > .9) {
+      if (waveform_update_timer > 0) {
         waveform_update_timer = 0;
         updateWaveformTexture();
       }

@@ -80,10 +80,15 @@ OSCdef(\k, { |msg|
 	// the partition to retrieve is the one BEFORE the latest transition point
 	var partition = (msg[3] - 1) % numChunks;
 	relay_buffer0.getn(partition.asInteger * chunkSize, chunkSize, { |data|
+		// downsample data
+		//data.size.postln;
+		data = data.resamp1(data.size/4);
+		//data.size.postln;
 		~o.sendMsg(\waveform0, *(data.as(Array)));
 	});
 
 	relay_buffer1.getn(partition.asInteger * chunkSize, chunkSize, { |data|
+		data = data.resamp1(data.size/4);
 		~o.sendMsg(\waveform1, *(data.as(Array)));
 	});
 
