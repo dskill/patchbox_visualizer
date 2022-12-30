@@ -58,12 +58,12 @@ float sdEffectBlend( in vec2 p, float radius, float waveform) {
 	waveform *= 1.0; // scale down amplituce
 	float d = 0.0;
 	d = p.y + waveform;
-	
+	/*
 	d = mix(d, sdCircle(p, radius + waveform), iEffectParams0.x); // reverb
 	d = mix(d, sdEquilateralTriangle(p + abs(waveform)), iEffectParams0.y); // distortion
 	d = mix(d, sdRhombus(p, vec2(radius + waveform, radius + waveform)), iEffectParams0.w); 
 	d = mix(d, sin(d*3.0), iEffectParams0.z); // delay
-	
+	*/
 	return d;
 } 
 

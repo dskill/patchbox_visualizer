@@ -34,8 +34,8 @@ let osc_update_timer = 0;
 let waveform_update_timer = 0;
 
 const waveformResolution = 4096; 
-let waveformRms = [0,0,0,0];
-let waveformRmsAccum = [0.0,0.0,0.0,0.0];
+let waveformRms = [0,0,0];
+let waveformRmsAccum = [0.0,0.0,0.0];
 let effectParams0 = [0,0,0,0];
 let effectParams1 = [0,0,0,0];
 let waveformTexture0 = {};  
@@ -45,7 +45,7 @@ let waveformArray1 = [];
 waveformArray1.length = waveformResolution;
 
 // rename this now that i'm using it for history 
-let waveformArray = new Float32Array(waveformResolution * 4);
+let waveformArray = new Float32Array(waveformResolution * 3);
 
 // PARAMS
 let params = {
@@ -237,8 +237,8 @@ function initShaderGlobals(regl)
   // From a flat array
   waveformTexture0 = regl.texture({
     shape: [waveformResolution, 1],
-    format: 'rgba',
-    type: 'float32',
+    format: 'rgb',
+    //type: 'float32',
   });
 }
 
@@ -273,50 +273,48 @@ function initGUI()
   }
 }
 
-function updateWaveformTexture()
-{
+function updateWaveformData() {
     // make an array that concatenates the waveform with itself
     // so that we can draw a line between the two
-    waveformRms = [0,0,0,0];
+    waveformRms = [0,0,0];
 
     // if waveformRmsAccum contains a NaN, set to 0
     // this is from NaN RMS values at startup
     if (isNaN(waveformRmsAccum[0])) {
-      waveformRmsAccum = [0,0,0,0];
+      waveformRmsAccum = [0,0,0];
     } else if (isNaN(waveformRmsAccum[1])) {
-      waveformRmsAccum = [0,0,0,0];
+      waveformRmsAccum = [0,0,0];
     }
     
     for (let i = 0; i < waveformResolution; i++)
     {
-
       // for FFT waveformArray[i * 4 + 1] = math.lerp(waveformArray[i * 4 + 1], Math.abs(waveformArray1[i]) * .02, 0.3);
-      waveformArray[i * 4] = waveformArray0[i];
-      waveformArray[i * 4 + 1] = waveformArray1[i];
-      waveformArray[i * 4 + 2] = waveformArray1[i];
-      waveformArray[i * 4 + 3] = waveformArray1[i];
+      waveformArray[i * 3] = waveformArray0[i];
+      waveformArray[i * 3 + 1] = waveformArray1[i];
+      waveformArray[i * 3 + 2] = waveformArray1[i];
 
       //RMS
-      waveformRms[0] += waveformArray[i * 4]  * waveformArray[i * 4];
-      waveformRms[1] += waveformArray[i * 4 + 1]  * waveformArray[i * 4 + 1];
-      waveformRms[2] += waveformArray[i * 4 + 2]  * waveformArray[i * 4 + 2];
-      waveformRms[3] += waveformArray[i * 4 + 3]  * waveformArray[i * 4 + 3];
-   }
+      waveformRms[0] += waveformArray[i * 3]  * waveformArray[i * 3];
+      waveformRms[1] += waveformArray[i * 3 + 1]  * waveformArray[i * 3 + 1];
+      waveformRms[2] += waveformArray[i * 3 + 2]  * waveformArray[i * 3 + 2];
+    }
     waveformRms[0] =  Math.sqrt(waveformRms[0]/waveformResolution);
     waveformRms[1] =  Math.sqrt(waveformRms[1]/waveformResolution);
     waveformRms[2] =  Math.sqrt(waveformRms[2]/waveformResolution);
-    waveformRms[3] =  Math.sqrt(waveformRms[3]/waveformResolution);
 
     waveformRmsAccum[0] += waveformRms[0] ;
     waveformRmsAccum[1] += waveformRms[1] ;
     waveformRmsAccum[2] += waveformRms[2] ;
-    waveformRmsAccum[3] += waveformRms[3] ;
+}
 
+function updateWaveformTexture()
+{
+   updateWaveformData();
     // this is probably real slow. I wonder if there's a better way?
     waveformTexture0({
       shape: [waveformResolution, 1],
-      format: 'rgba',
-      type: 'float32',
+      format: 'rgb',
+      //type: 'float32',
       data: waveformArray
     });
 }
@@ -494,13 +492,12 @@ const sketch = ({ canvas, gl, update, render, pause }) =>
       }
 
       // update UI input
-      /*
-      if (waveform_update_timer > .1) {
+      if (waveform_update_timer > .9) {
         waveform_update_timer = 0;
         updateWaveformTexture();
       }
-      */
-      updateWaveformTexture();
+      
+      //updateWaveformTexture();
 
       
       // map params to shader globals
