@@ -10,6 +10,16 @@ s.waitForBoot{
 // from the wonderful forum post:
 // https://scsynth.org/t/is-it-possible-to-get-the-output-of-a-ugen-as-an-array-of-floats-audio-buffer/6539/14
 var chunkSize = 1024; // 2 waveforms at 128 resolution is about the most the PI will handle right now
+// when we send OSC messages, we need to downsample the waveform data.  On PI, it can handle about 6k samples per second.
+// we're running at 44k, so downsampling by 8 is enough for good performance
+// the waveform resolution can be as high as 2048 and the webGL thread will still be able to keep up.
+// if we wanted higher resolution, we could compromise by sending the data at a lower framerate
+// that would create discontinuities between OSC messages, but in the extreme case we could just send 
+// a single OSC message of 2048 samples.  That should probably be fine, but we would only want to send the sample
+// a few times a second.  Anyway... there are a lot of knobs to tune and as long as we stay under 6k samples per second
+// we should be fine.
+
+var chunkDownsample = 8;
 var numChunks = 16;
 var relay_buffer0 = Buffer.alloc(s, chunkSize * numChunks);
 var relay_buffer1 = Buffer.alloc(s, chunkSize * numChunks);
@@ -82,13 +92,13 @@ OSCdef(\k, { |msg|
 	relay_buffer0.getn(partition.asInteger * chunkSize, chunkSize, { |data|
 		// downsample data
 		//data.size.postln;
-		data = data.resamp1(data.size/4);
+		data = data.resamp1(data.size/chunkDownsample);
 		//data.size.postln;
 		~o.sendMsg(\waveform0, *(data.as(Array)));
 	});
 
 	relay_buffer1.getn(partition.asInteger * chunkSize, chunkSize, { |data|
-		data = data.resamp1(data.size/4);
+		data = data.resamp1(data.size/chunkDownsample);
 		~o.sendMsg(\waveform1, *(data.as(Array)));
 	});
 
