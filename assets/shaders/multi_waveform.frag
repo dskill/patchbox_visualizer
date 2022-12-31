@@ -5,8 +5,8 @@
 precision highp float;
 uniform float iTime;
 uniform vec2 iResolution;
-uniform vec4 iWaveformRms;
-uniform vec4 iWaveformRmsAccum;
+uniform vec3 iWaveformRms;
+uniform vec3 iWaveformRmsAccum;
 uniform vec4 iEffectParams0;
 uniform vec4 iEffectParams1;
 //
@@ -84,8 +84,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 //	thetaUV *= 2.0;
 	//if (thetaUV > 1.0) thetaUV = 1.0 - thetaUV;
 
-	float waveformU =  abs(sin(uvOriginal.x * 5.0 + .1*iWaveformRmsAccum.g)); //mod(uvOriginal.x * 3.0, 1.0);
-    //vec2 waveform = -texture2D( iWaveformTexture0, vec2(waveformU,0)).rg;	
+	//vec2 waveform = -texture2D( iWaveformTexture0, vec2(waveformU,0)).rg;	
 	vec2 waveform = -texture2D( iWaveformTexture0, vec2(uvOriginal.x,0)).rg;	
 
 	float waveform0 = waveform.r;
@@ -101,31 +100,27 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 
 	
 	float ring = sdEffectBlend(uvCentered, pinch, waveform0);
-	//ring = abs( sin(ring*2.0 - iWaveformRmsAccum.r*.1));
+	ring = abs( sin(ring*2.0 - iWaveformRmsAccum.r*.1));
 	ring -= .5;
 	ring = pow(ring, 1.2);
 	
-	//ring = smoothstep(.0,.01,ring);
 	color.r = 1.0 * pow(smoothstep(0.15*pinch,.001*pinch, ring),4.);
 	color.g = .7 * pow(smoothstep(0.3*pinch,.001*pinch, ring),4.);
 	color.b = 0.5 * pow(smoothstep(0.8*pinch,.001*pinch, ring),4.);
 
-	//float ring2 = sdCircle(uvCentered, .6 + pinch * waveform1 * 2.0);
 	float ring2 = sdEffectBlend(uvCentered, pinch, waveform1);
 	ring2 += .5;
 	
 
-	//ring2 = abs(ring2);
-	//ring2 = abs( sin(ring2*2.0 - abs(iWaveformRmsAccum.g)*.2));
+	ring2 = abs(ring2);
+	ring2 = abs( sin(ring2*2.0 - abs(iWaveformRmsAccum.g)*.2));
 	ring2 = pow(.5-ring2, 1.2);
 
-	//ring = smoothstep(.0,.01,ring);
 	color.r += 1.0 * pow(smoothstep(0.25*pinch,.001*pinch, ring2),4.);
 	color.g += .7 * pow(smoothstep(0.1*pinch,.001*pinch, ring2),4.);
 	color.b += 0.2 * pow(smoothstep(0.8*pinch,.001*pinch, ring2),4.); 
 
 	float ring3 = sdEffectBlend(uvCentered, 0.0, 0.0);
-	//ring = smoothstep(.0,.01,ring);
 	color.r += 0.13 * pow(smoothstep(0.1,.001, ring3),1.);
 	color.g += 0.0 * pow(smoothstep(0.1,.001, ring3),1.);
 	color.b += .5 * pow(smoothstep(1.6,.001, ring3),1.);
