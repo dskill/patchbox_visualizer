@@ -316,10 +316,12 @@ function updateWaveformTexture()
     waveformTexture0({
       shape: [waveformResolution, 1],
       format: 'rgb',
-      //type: 'float32',
+        //type: 'float32',
       data: waveformArray
     });
+
 }
+
 
 // Setup our sketch
 const settings = {
@@ -434,7 +436,7 @@ const sketch = ({ canvas, gl, update, render, pause }) =>
     initPrecip();
   }
   // Create regl for handling GL stuff
-  const regl = createRegl({ gl, extensions: ['OES_standard_derivatives', 'OES_texture_float'] });
+  const regl = createRegl({ gl, extensions: ['OES_standard_derivatives', 'OES_texture_float'] });//, optionalExtensions: ['OES_texture_float_linear'] });
   // A mesh for a flat plane
   const quad = createQuad();
   initShaderGlobals(regl);
