@@ -14,7 +14,7 @@ var chunkSize = 1024; // 2 waveforms at 128 resolution is about the most the PI 
 // we're running at 44k, so downsampling by 8 is enough for good performance
 // the waveform resolution can be as high as 2048 and the webGL thread will still be able to keep up.
 // if we wanted higher resolution, we could compromise by sending the data at a lower framerate
-// that would create discontinuities between OSC messages, but in the extreme case we could just send 
+// that would create discontinuities between OSC messages, but in the extreme case we could just send
 // a single OSC message of 2048 samples.  That should probably be fine, but we would only want to send the sample
 // a few times a second.  Anyway... there are a lot of knobs to tune and as long as we stay under 6k samples per second
 // we should be fine.
@@ -72,7 +72,7 @@ synth = SynthDef(\testsynth, { |out,
 	// Trig.ar is not needed
 	var trig = HPZ1.ar(phase) < 0;
 	var partition = PulseCount.ar(trig) % numChunks;
-	var phase_reset_trig = Impulse.ar(10);
+	var fixed_timing_reset_trig = Impulse.ar(10);
 	// write to buffers that will contain the waveform data we send via OSC
 	BufWr.ar(sig, relay_buffer0, phase + (chunkSize * partition));
 	BufWr.ar(final_sig, relay_buffer1, phase + (chunkSize * partition));
@@ -80,7 +80,7 @@ synth = SynthDef(\testsynth, { |out,
 	// send data as soon as it's available and orrect
 	SendReply.ar(trig, '/buffer_refresh', partition);
 	// or send data at a specified framerate. This is wrong if you're sending a real audio signal
-	//SendReply.ar(phase_reset_trig, '/buffer_refresh', partition);
+	//SendReply.ar(fixed_timing_reset_trig, '/buffer_refresh', partition);
 
 	// what audio to return from the function
 	Out.ar(out, final_sig); //sig_reverb + sig);
