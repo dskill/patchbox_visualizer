@@ -19,7 +19,7 @@ var chunkSize = 1024; // 2 waveforms at 128 resolution is about the most the PI 
 // a few times a second.  Anyway... there are a lot of knobs to tune and as long as we stay under 6k samples per second
 // we should be fine.
 
-var chunkDownsample = 8;
+var chunkDownsample = 32;
 var numChunks = 16;
 var relay_buffer0 = Buffer.alloc(s, chunkSize * numChunks);
 var relay_buffer1 = Buffer.alloc(s, chunkSize * numChunks);
