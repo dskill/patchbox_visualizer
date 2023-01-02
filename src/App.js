@@ -67,7 +67,7 @@ export default function App()
     <>
       <Leva
         //fill // default = false,  true makes the pane fill the parent dom node it's rendered in
-        flat // default = false,  true removes border radius and shadow
+        //flat // default = false,  true removes border radius and shadow
         //oneLineLabels // default = false, alternative layout for labels, with labels and fields on separate rows
         //hideTitleBar // default = false, hides the GUI header
         //collapsed // default = false, when true the GUI is collpased
