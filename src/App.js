@@ -6,7 +6,7 @@ import DistortionEffect from './DistortionEffect'
 import {OSCNetworkBridge} from './OSCNetworkBridge.js'
 import { WaveformTexture } from './WaveformTexture'
 
-const resolution = 4096;
+const resolution = 512;
 const oscNetworkBridge = new OSCNetworkBridge(resolution);
 const waveformTexture = new WaveformTexture(resolution);
 
