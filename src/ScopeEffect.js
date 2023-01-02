@@ -19,32 +19,31 @@ function ScopeEffect({waveformTexture, waveformRms, waveformRmsAccum, oscNetwork
   let effectParams0 = [0,0,0,0];
   let effectParams1 = [0,0,0,0];
 
-  // set defaults
-  oscNetworkBridge.send('reverbMix', 0)
-  oscNetworkBridge.send('delayMix', 0)
-  oscNetworkBridge.send('delayTime', 0)
-  oscNetworkBridge.send('delayFeedback', 0)
-  oscNetworkBridge.send('distortionPreGain', 1)
-  // to do: send bypass effect OSC message
-
   const ref = useRef()
   const { width, height } = useThree((state) => state.viewport)
 
+  // use controls with leva. Add amplitude float
+  useControls({
+    amplitude: { value: .2, min: 0, max: 1, step: 0.01, onChange: (value) => {  ref.current.iAmplitude = value } },
+  })
+  
   // update the uniforms
   useFrame((state, delta) => {
     ref.current.time += delta
     ref.current.iWaveformRms = waveformRms
     ref.current.iWaveformRmsAccum = waveformRmsAccum
-    
-    // update the uniforms
-    effectParams0[0] = 0
-    effectParams0[1] = 0
-    effectParams0[2] = 0
-    effectParams0[3] = 0
-    effectParams1[0] = 0
-    ref.current.iEffectParams0 = effectParams0
-    ref.current.iEffectParams1 = effectParams1
   })
+  
+  // send OSC messages only on start
+  useEffect(() => {
+    // set defaults
+    oscNetworkBridge.send('reverbMix', 0)
+    oscNetworkBridge.send('delayMix', 0)
+    oscNetworkBridge.send('delayTime', 0)
+    oscNetworkBridge.send('delayFeedback', 0)
+    oscNetworkBridge.send('distortionPreGain', 1)
+    // to do: send bypass effect OSC message
+  }, [])  // empty array means effect will only be applied once
 
   return (
     <mesh scale={[width, height, 1]}>

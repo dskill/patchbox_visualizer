@@ -10,8 +10,7 @@ const ScopeMaterial = shaderMaterial(
     iTime: 0,
     iWaveformRms: new THREE.Vector4(0, 0, 0, 0),
     iWaveformRmsAccum: new THREE.Vector4(0, 0, 0,0),
-    iEffectParams0: new THREE.Vector4(0, 0, 0, 0),
-    iEffectParams1: new THREE.Vector4(0, 0, 0, 0),
+    iAmplitude: 0,
     iWaveformTexture0: { value: null },
   },
   glsl`
@@ -29,8 +28,7 @@ const ScopeMaterial = shaderMaterial(
   uniform float iTime;
 uniform vec4 iWaveformRms;
 uniform vec4 iWaveformRmsAccum;
-uniform vec4 iEffectParams0;
-uniform vec4 iEffectParams1;
+uniform float iAmplitude;
 varying vec2 vUv;
 
 //
@@ -43,58 +41,12 @@ uniform sampler2D iWaveformTexture0;
 //
 //
 float squared(float value) { return value * value; }
-		
-// Smooth HSV to RGB conversion 
-vec3 hsv2rgb_smooth( in vec3 c )
-{
-    vec3 rgb = clamp( abs(mod(c.x*6.0+vec3(0.0,4.0,2.0),6.0)-3.0)-1.0, 0.0, 1.0 );
-	rgb = rgb*rgb*(3.0-2.0*rgb); // cubic smoothing	
-	return c.z * mix( vec3(1.0), rgb, c.y);
-}
-
-// FROM https://iquilezles.org/articles/distfunctions2d/
-float ndot(vec2 a, vec2 b ) { return a.x*b.x - a.y*b.y; }
-
-float sdCircle( vec2 p, float r )
-{
-    return length(p) - r;
-}
-
-float sdRhombus( in vec2 p, in vec2 b ) 
-{
-    p = abs(p);
-    float h = clamp( ndot(b-2.0*p,b)/dot(b,b), -1.0, 1.0 );
-    float d = length( p-0.5*b*vec2(1.0-h,1.0+h) );
-    return d * sign( p.x*b.y + p.y*b.x - b.x*b.y );
-}
-
-float sdEquilateralTriangle( in vec2 p )
-{
-    const float k = sqrt(3.0);
-    p.x = abs(p.x) - 1.0;
-    p.y = p.y + 1.0/k;
-    if( p.x+k*p.y>0.0 ) p = vec2(p.x-k*p.y,-k*p.x-p.y)/2.0;
-    p.x -= clamp( p.x, -2.0, 0.0 );
-    return -length(p)*sign(p.y);
-}
-
-float sdEffectBlend( in vec2 p, float radius, float waveform) {
-	waveform *= 1.0; // scale down amplituce
-	float d = 0.0;
-	d = p.y + waveform;
-	
-	d = mix(d, sdCircle(p, radius + waveform), iEffectParams0.x); // reverb
-	d = mix(d, sdEquilateralTriangle(p + abs(waveform)), iEffectParams0.y); // distortion
-	d = mix(d, sdRhombus(p, vec2(radius + waveform, radius + waveform)), iEffectParams0.w); 
-	d = mix(d, sin(d*3.0), iEffectParams0.z); // delay
-	
-	return d;
-} 
 
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {    
 	vec2 uvOriginal = vUv;
 	vec2 waveform = -texture2D( iWaveformTexture0, vec2(uvOriginal.x,0)).rg;	
+	waveform *= iAmplitude; // scale down
 	float waveform0 = waveform.r;
 	float waveform1 = waveform.g;
     vec3 color = vec3(0.0); 

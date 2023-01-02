@@ -19,14 +19,9 @@ function DistortionEffect({waveformTexture, waveformRms, waveformRmsAccum, oscNe
   let effectParams0 = [0,0,0,0];
   let effectParams1 = [0,0,0,0];
 
-  // set defaults
-  oscNetworkBridge.send('reverbMix', 0)
-  oscNetworkBridge.send('delayMix', 0)
-  oscNetworkBridge.send('delayTime', 0)
-  oscNetworkBridge.send('delayFeedback', 0)
-    useControls({
-        distortionPreGain: { value: 1, min: 1, max: 200, step: 0.01, onChange: (value) => { oscNetworkBridge.send('distortionPreGain', value) } },
-      })
+  useControls({
+      distortionPreGain: { value: 1, min: 1, max: 200, step: 0.01, onChange: (value) => { oscNetworkBridge.send('distortionPreGain', value) } },
+    })
     
   const ref = useRef()
   const { width, height } = useThree((state) => state.viewport)
@@ -46,6 +41,17 @@ function DistortionEffect({waveformTexture, waveformRms, waveformRmsAccum, oscNe
     ref.current.iEffectParams0 = effectParams0
     ref.current.iEffectParams1 = effectParams1
   })
+
+  // send OSC messages only on start
+  useEffect(() => {
+    // set defaults
+    oscNetworkBridge.send('reverbMix', 0)
+    oscNetworkBridge.send('delayMix', 0)
+    oscNetworkBridge.send('delayTime', 0)
+    oscNetworkBridge.send('delayFeedback', 0)
+    // to do: send bypass effect OSC message
+  }, [])  // empty array means effect will only be applied once
+
 
   return (
     <mesh scale={[width, height, 1]}>
