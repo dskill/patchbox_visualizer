@@ -3,6 +3,7 @@ import { Canvas, useFrame } from '@react-three/fiber'
 import { Leva, useControls } from 'leva'
 import FullScreenEffect from './FullScreenEffect'
 import DistortionEffect from './DistortionEffect'
+import ScopeEffect from './ScopeEffect'
 import {OSCNetworkBridge} from './OSCNetworkBridge.js'
 import { WaveformTexture } from './WaveformTexture'
 
@@ -13,7 +14,7 @@ const waveformTexture = new WaveformTexture(resolution);
 export default function App() { 
   const searchParams = new URLSearchParams(window.location.search)
   let  url_param_gui = searchParams.get('gui')
-  const effects = ["Effect 1", "Effect 2"]
+  const effects = ["Debug", "Distortion", "Scope"]
   const [currentEffect, setEffect] = useState(0);
   const [waveformRms, setWaveformRms] = useState([0,0,0,0]);
   const [waveformRmsAccum, setWaveformRmsAccum] = useState([0,0,0,0]);
@@ -60,10 +61,12 @@ export default function App() {
       <Canvas linear>
         {(() => {
           switch (currentEffect) {
-            case 'Effect 1':
+            case 'Debug':
               return <FullScreenEffect {...props} />
-            case 'Effect 2':
+            case 'Distortion':
               return <DistortionEffect {...props} />
+            case 'Scope':
+              return <ScopeEffect {...props} />
             default:
               return null
           }

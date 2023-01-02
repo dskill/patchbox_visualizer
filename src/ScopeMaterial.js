@@ -4,7 +4,7 @@ import { shaderMaterial } from '@react-three/drei'
 import glsl from 'babel-plugin-glsl/macro'
 
 // This shader is from Bruno Simons Threejs-Journey: https://threejs-journey.xyz
-const FullScreenMaterial = shaderMaterial(
+const ScopeMaterial = shaderMaterial(
   {
     time: 0,
     iTime: 0,
@@ -93,77 +93,25 @@ float sdEffectBlend( in vec2 p, float radius, float waveform) {
 
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {    
-	vec2 uvOriginal = vUv;// fragCoord.xy / 300.0 - vec2(.1,.1); //vUv; //fragCoord.xy / iResolution.xy;
-	
-	/*
-	uvOriginal.xy = uvOriginal.x < 0.0 ? uvOriginal.xy = vec2(0.0,0.0) : uvOriginal.xy;
-	uvOriginal.xy = uvOriginal.y < 0.0 ? uvOriginal.xy = vec2(0.0,0.0) : uvOriginal.xy;
-	uvOriginal.xy = uvOriginal.x > 1.0 ? uvOriginal.xy = vec2(0.0,0.0) : uvOriginal.xy;
-	uvOriginal.xy = uvOriginal.y > 1.0 ? uvOriginal.xy = vec2(0.0,0.0) : uvOriginal.xy;
-	*/
-
-	vec2 uvCentered = -1.0 + 2.0 * uvOriginal;
-	// pinch the uv's a bit to make up for the HD aspect ratio (yes, hack)
-	uvCentered.x *= (16.0/9.0);
-	//float r = length(uvOriginal);
-	//float theta = atan(uvCentered.y, uvCentered.x);
-	// grab waveform
-	// make uvs that tile twice around the circle
-	//theta += iWaveformRmsAccum.g;
-	//theta = mod(theta, 3.14159*2.0);
-	//float thetaUV = (theta +  3.14159) / (1.0 * 3.14159);
-	//thetaUV = mod(thetaUV, 1.0);
-//	thetaUV *= 2.0;
-	//if (thetaUV > 1.0) thetaUV = 1.0 - thetaUV;
-
-	//vec2 waveform = -texture2D( iWaveformTexture0, vec2(waveformU,0)).rg;	
+	vec2 uvOriginal = vUv;
 	vec2 waveform = -texture2D( iWaveformTexture0, vec2(uvOriginal.x,0)).rg;	
-
 	float waveform0 = waveform.r;
 	float waveform1 = waveform.g;
     vec3 color = vec3(0.0); 
-    
-	//float pinch = 1.0;
-	// TODO: Instead of pinching at boundaries, mirror
-	//float pinch = pow(sin(thetaUV * 3.14159),.3);
-	float pinch = 1.0;
-	//pinch += iEffectParams0.r;
-	//pinch = 1.0;
+    float pinch = 1.0;
+	float scopeline0 = uvOriginal.y + waveform0 - .6;
+	scopeline0 = abs(scopeline0);
+	color.r = 1.0 * pow(smoothstep(0.015,.001, scopeline0),4.);
+	color.g = .7 * pow(smoothstep(0.03,.001, scopeline0),4.);
+	color.b = 0.5 * pow(smoothstep(0.08,.001, scopeline0),4.);
 
-	
-	float ring = sdEffectBlend(uvCentered, pinch, waveform0);
-	ring = abs( sin(ring*2.0 - iWaveformRmsAccum.r*.1));
-	ring -= .5;
-	ring = pow(ring, 1.2);
-	
-	color.r = 1.0 * pow(smoothstep(0.15*pinch,.001*pinch, ring),4.);
-	color.g = .7 * pow(smoothstep(0.3*pinch,.001*pinch, ring),4.);
-	color.b = 0.5 * pow(smoothstep(0.8*pinch,.001*pinch, ring),4.);
-
-	float ring2 = sdEffectBlend(uvCentered, pinch, waveform1);
-	ring2 += .5;
-	
-	ring2 = abs(ring2);
-	ring2 = abs( sin(ring2*2.0 - abs(iWaveformRmsAccum.g)*.2));
-	ring2 = pow(.5-ring2, 1.2);
-
-	color.r += 1.0 * pow(smoothstep(0.25*pinch,.001*pinch, ring2),4.);
-	color.g += .7 * pow(smoothstep(0.1*pinch,.001*pinch, ring2),4.);
-	color.b += 0.2 * pow(smoothstep(0.8*pinch,.001*pinch, ring2),4.); 
-
-	float ring3 = sdEffectBlend(uvCentered, 0.0, 0.0);
-	color.r += 0.13 * pow(smoothstep(0.1,.001, ring3),1.);
-	color.g += 0.0 * pow(smoothstep(0.1,.001, ring3),1.);
-	color.b += .5 * pow(smoothstep(1.6,.001, ring3),1.);
-
-	//color.r *= .4 + iEffectParams0.x;
-	//color.g *= .4 + iEffectParams0.y;
-	//color.b *= .4 + iEffectParams0.z;
+	float scopeline1 = uvOriginal.y + waveform1- .4;
+	scopeline1 = abs(scopeline1);
+	color.r += 0.8 * pow(smoothstep(0.015,.001, scopeline1),4.);
+	color.g += 0.9 * pow(smoothstep(0.05,.001, scopeline1),4.);
+	color.b += 0.5 * pow(smoothstep(0.08,.001, scopeline1),4.);
 	
 	fragColor = vec4(color, 1.0);  
-	//fragColor.x = uvOriginal.x;
-	//fragColor.y = uvOriginal.y;
-	//fragColor.z = 0.0;
 
   #include <tonemapping_fragment>
   #include <encodings_fragment>
@@ -180,6 +128,6 @@ void main() {
 `
 )
 
-extend({ FullScreenMaterial: FullScreenMaterial })
+extend({ ScopeMaterial: ScopeMaterial })
 
-export { FullScreenMaterial as FullScreenMaterial }
+export { ScopeMaterial as ScopeMaterial }

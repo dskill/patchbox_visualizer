@@ -1,7 +1,7 @@
 
 import { useRef, useState, useEffect } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { FullScreenMaterial } from './FullScreenMaterial'
+import { ScopeMaterial } from './ScopeMaterial'
 import { useControls } from 'leva'
 
 // smoothstep function
@@ -15,7 +15,7 @@ const math = {
   },
 }
 
-function DistortionEffect({waveformTexture, waveformRms, waveformRmsAccum, oscNetworkBridge, ...global_props }) {
+function ScopeEffect({waveformTexture, waveformRms, waveformRmsAccum, oscNetworkBridge, ...global_props }) {
   let effectParams0 = [0,0,0,0];
   let effectParams1 = [0,0,0,0];
 
@@ -24,10 +24,9 @@ function DistortionEffect({waveformTexture, waveformRms, waveformRmsAccum, oscNe
   oscNetworkBridge.send('delayMix', 0)
   oscNetworkBridge.send('delayTime', 0)
   oscNetworkBridge.send('delayFeedback', 0)
-    useControls({
-        distortionPreGain: { value: 1, min: 1, max: 200, step: 0.01, onChange: (value) => { oscNetworkBridge.send('distortionPreGain', value) } },
-      })
-    
+  oscNetworkBridge.send('distortionPreGain', 1)
+  // to do: send bypass effect OSC message
+
   const ref = useRef()
   const { width, height } = useThree((state) => state.viewport)
 
@@ -41,7 +40,7 @@ function DistortionEffect({waveformTexture, waveformRms, waveformRmsAccum, oscNe
     effectParams0[0] = 0
     effectParams0[1] = 0
     effectParams0[2] = 0
-    effectParams0[3] = distortionPreGain.value / 200.0
+    effectParams0[3] = 0
     effectParams1[0] = 0
     ref.current.iEffectParams0 = effectParams0
     ref.current.iEffectParams1 = effectParams1
@@ -50,8 +49,8 @@ function DistortionEffect({waveformTexture, waveformRms, waveformRmsAccum, oscNe
   return (
     <mesh scale={[width, height, 1]}>
       <planeGeometry/>
-      <fullScreenMaterial ref={ref} 
-        key={FullScreenMaterial.key} 
+      <scopeMaterial ref={ref} 
+        key={ScopeMaterial.key} 
         toneMapped={true} 
         iWaveformTexture0={waveformTexture}
         />
@@ -59,4 +58,4 @@ function DistortionEffect({waveformTexture, waveformRms, waveformRmsAccum, oscNe
   )
 }
 
-export default DistortionEffect
+export default ScopeEffect
