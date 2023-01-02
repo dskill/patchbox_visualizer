@@ -67,4 +67,12 @@ export class WaveformTexture {
         this.waveformRmsAccum[3] += this.waveformRms[3] ;
         this.texture.needsUpdate = true;
     }
+
+    setResolution(resolution) {
+        this.resolution = resolution;
+        this.size = this.resolution * this.height;
+        this.data = new Float32Array(4 * this.size);
+        this.texture = new THREE.DataTexture( this.data, this.resolution, this.height, THREE.RGBAFormat, THREE.FloatType);
+        this.texture.encoding = THREE.LinearEncoding;
+    }
 }

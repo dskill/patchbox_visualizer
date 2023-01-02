@@ -68,6 +68,11 @@ export class OSCNetworkBridge {
       }
   }
 
+  setResolution(resolution) {
+    this.waveformArray0.length = resolution;
+    this.waveformArray1.length = resolution;
+  }
+
   
    send(name, value) {
     if (this.osc_connected ) {

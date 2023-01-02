@@ -20,6 +20,15 @@ export default function App() {
   const [waveformRmsAccum, setWaveformRmsAccum] = useState([0,0,0,0]);
 
   let props = useControls({
+    resolution: {
+      value: resolution,
+      options: [32, 64, 128, 256, 512, 1024, 2048, 4096],
+      onChange: (value) => {
+        console.log(value)
+        oscNetworkBridge.setResolution(value)
+        waveformTexture.setResolution(value)
+      }
+    },
     effects: {
       value: effects[0], 
       options: effects,
