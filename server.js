@@ -11,7 +11,7 @@ const myIP = ip.address();
 // this should be fixed at some point. Maybe by using the ip module...
 //const myIP = "127.0.0.1";
 const app = express();
-const port = 3001;
+const port = 3000;
 
 //
 // express server for static files
