@@ -16,7 +16,7 @@ const port = 3000;
 //
 // express server for static files
 //
-app.use(express.static('public'))
+app.use(express.static('build'))
 
 const server = createServer(app);
 
@@ -41,7 +41,6 @@ app.get('/', function(req, res){
   // log the request
   console.log("request: " + req.url);
   console.log("root:", __dirname + "/");
-  
   res.sendFile('index.html', { root: __dirname + "/" } );
 });
 
@@ -75,7 +74,7 @@ osc.open()
   
 // listen for invoing messages
 osc.on('*', message => {
-   /*
+ /*
  console.log('MESSAGE');
  console.log(message);
 

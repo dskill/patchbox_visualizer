@@ -1,37 +1,40 @@
 {
-  "name": "audio-sketches",
+  "name": "shader-hmr",
   "version": "1.0.0",
-  "description": "",
-  "main": "test.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
-  },
-  "author": "",
-  "license": "ISC",
+  "description": "Shows how to create HMR shaders",
+  "keywords": [],
+  "main": "src/index.js",
   "dependencies": {
-    "canvas-sketch": "^0.7.6",
-    "canvas-sketch-cli": "^1.11.20",
-    "canvas-sketch-util": "^1.10.0",
-    "dat.gui": "^0.7.9",
-    "eases": "^1.0.8",
-    "express": "^4.18.1",
-    "glsl-aastep": "^1.0.1",
-    "glsl-hsl2rgb": "^1.1.0",
+    "@babel/core": "7.14.0",
+    "@react-three/drei": "9.5.0",
+    "@react-three/fiber": "8.0.12",
+    "@types/three": "0.139.0",
+    "babel-plugin-glsl": "1.0.0",
     "glsl-noise": "0.0.0",
+    "glslify": "^7.1.1",
     "ip": "^1.1.8",
-    "lerp": "^1.0.3",
-    "load-asset": "^1.2.0",
-    "midi": "^2.0.0",
-    "nice-color-palettes": "^3.0.0",
-    "osc-js": "^2.3.2",
-    "p5": "^1.4.2",
-    "primitive-quad": "^2.0.0",
-    "regl": "^2.1.0",
-    "spotify-web-api-js": "^1.5.2",
-    "suncalc": "^1.9.0",
-    "supercolliderjs": "^1.0.1",
-    "tone": "^14.7.77",
-    "touches": "^1.2.2"
-  }
+    "leva": "^0.9.34",
+    "nanoid": "3.3.3",
+    "osc-js": "^2.4.0",
+    "raw-loader": "^4.0.2",
+    "react": "18.0.0",
+    "react-dom": "18.0.0",
+    "react-router-dom": "^6.6.1",
+    "react-scripts": "5.0.1",
+    "short-uuid": "4.2.0",
+    "three": "^0.139.2",
+    "v8": "0.1.0"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test --env=jsdom",
+    "eject": "react-scripts eject"
+  },
+  "browserslist": [
+    ">0.2%",
+    "not dead",
+    "not ie <= 11",
+    "not op_mini all"
+  ]
 }
