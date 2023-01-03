@@ -21,7 +21,7 @@ export default function App()
 {
   const searchParams = new URLSearchParams(window.location.search)
   //let url_param_gui = searchParams.get('gui')
-  const effects = ["Distortion", "Debug", "Scope", "Scope Distortion", "Glitch Distortion"]
+  const effects = ["Glitch Distortion", "Distortion", "Scope", "Scope Distortion",  "Debug"]
   const [currentEffect, setEffect] = useState(0);
   const [waveformRms, setWaveformRms] = useState([0, 0, 0, 0]);
   const [waveformRmsAccum, setWaveformRmsAccum] = useState([0, 0, 0, 0]);
@@ -44,7 +44,6 @@ export default function App()
   props.waveformRmsAccum = waveformRmsAccum
   props.oscNetworkBridge = oscNetworkBridge
   props.setDpr = setDpr
-  //props.currentEffect = currentEffect;
 
   function UpdateLoop({ waveformRms })
   {

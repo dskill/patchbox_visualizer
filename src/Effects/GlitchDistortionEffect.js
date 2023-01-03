@@ -90,7 +90,7 @@ function GlitchDistortionEffect({ waveformTexture, waveformRms, waveformRmsAccum
       }
     },
     downsample: {
-      value: 4,
+      value: 8,
       options: [1, 2, 4, 8, 16, 32, 64, 128, 256],
       onChange: (value) =>
       {
@@ -118,9 +118,9 @@ function GlitchDistortionEffect({ waveformTexture, waveformRms, waveformRmsAccum
   useEffect(() =>
   {
     setDpr(.1)
-    set({ downsample: 4 })
-    set({ resolution: 256 })
-    set({ distortionPreGain: 1 })
+    set({ downsample: 8 })
+    set({ resolution: 128 })
+    set({ distortionPreGain: 100 })
     oscNetworkBridge.send('setEffect', 'scopeDistortion')
   }, [])  // empty array means effect will only be applied once
 

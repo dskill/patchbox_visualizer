@@ -46,7 +46,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {    
 	vec2 uvOriginal = vUv;
 	vec2 waveform = -texture2D( iWaveformTexture0, vec2(uvOriginal.x,0)).rg;	
-	waveform *= iAmplitude; // scale down
+	waveform *= 2.0 * iAmplitude; // scale Y
 	float waveform0 = waveform.r;
 	float waveform1 = waveform.g;
   
