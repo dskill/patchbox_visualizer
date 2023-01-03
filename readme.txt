@@ -1,18 +1,8 @@
+use the `patchbox-visualizer.desktop` script to autostart on pi. 
+or manually run with `sh kiosk.sh`.
 
-to autostart properly, run patchbox and enable the sc module. sc-module is in 
-/usr/local/patchbox...
+`main.scd` is the super collider script 
+`server.js` is the OSC bridge and the static web server
+`app.js` is the entry point for the react app
 
-then also make sure the systemd kiosk.sh script has been started
-sudo systemctl stop kiosk (enable/disable/start)
-
-main.scd is the super collider script that will run
-
-index.html is the webpage that will load
-
-to build index, use npx canvas-sketch patchbox_visualizer_osc.js --build --inline --name index
-
-to test the webpage, use npx canvas-sketch patchbox_visualizer_osc.js --hot --open
-
-kiosk.sh is where chromium is started.  That's from a service kiosk.service.
-
-mouse cursor is hidden with xset.
+run react in dev mode with `npm run start`, or build with `npm run build`
