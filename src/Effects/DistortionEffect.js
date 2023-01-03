@@ -44,12 +44,14 @@ function DistortionEffect({waveformTexture, waveformRms, waveformRmsAccum, oscNe
 
   // send OSC messages only on start
   useEffect(() => {
+    // start the effect
+    oscNetworkBridge.send('setEffect', 'default')
+    
     // set defaults
     oscNetworkBridge.send('reverbMix', 0)
     oscNetworkBridge.send('delayMix', 0)
     oscNetworkBridge.send('delayTime', 0)
     oscNetworkBridge.send('delayFeedback', 0)
-    // to do: send bypass effect OSC message
   }, [])  // empty array means effect will only be applied once
 
 

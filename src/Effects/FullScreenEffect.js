@@ -46,6 +46,13 @@ function FullScreenEffect({waveformTexture, waveformRms, waveformRmsAccum, oscNe
     ref.current.iEffectParams1 = effectParams1;
   })
 
+   // send OSC messages only on start
+   useEffect(() => {
+    // start the effect
+    oscNetworkBridge.send('setEffect', 'default')
+  }, [])  // empty array means effect will only be applied once
+
+
   return (
     <mesh scale={[width, height, 1]}>
       <planeGeometry />

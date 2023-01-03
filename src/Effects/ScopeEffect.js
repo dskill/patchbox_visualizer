@@ -42,7 +42,7 @@ function ScopeEffect({waveformTexture, waveformRms, waveformRmsAccum, oscNetwork
     oscNetworkBridge.send('delayTime', 0)
     oscNetworkBridge.send('delayFeedback', 0)
     oscNetworkBridge.send('distortionPreGain', 1)
-    // to do: send bypass effect OSC message
+    oscNetworkBridge.send('setEffect', 'bypass')
   }, [])  // empty array means effect will only be applied once
 
   return (

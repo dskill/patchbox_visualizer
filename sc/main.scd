@@ -24,17 +24,14 @@ var numChunks = 16;
 var relay_buffer0 = Buffer.alloc(s, chunkSize * numChunks);
 var relay_buffer1 = Buffer.alloc(s, chunkSize * numChunks);
 var relay_buffer2 = Buffer.alloc(s, 4096 * 2);
-
-
 var synth;
-var osc_receive;
 
 	//var solobuffer = Buffer.read(s, "/Users/drew/src/patchbox_visualizer/assets/music/solo.wav");
 	//var solobuffer = Buffer.read(s, "/Users/drew/src/patchbox_visualizer/assets/music/guitar-tuning.wav");
 
-	var mylerp = { arg a, b, t; MulAdd(a, t) + MulAdd(b, (1.0-t)) };
+var mylerp = { arg a, b, t; MulAdd(a, t) + MulAdd(b, (1.0-t)) };
 
-synth = SynthDef(\testsynth, { |out,
+SynthDef.new(\default, { |out,
 		reverbMix = 0.5,
 		distortionPreGain = 5.0,
 		delayMix = 0.5,
@@ -84,7 +81,38 @@ synth = SynthDef(\testsynth, { |out,
 
 	// what audio to return from the function
 	Out.ar(out, final_sig); //sig_reverb + sig);
-	}).play;
+	}).add;
+
+
+
+SynthDef.new(\bypass, { |out,
+		reverbMix = 0.5,
+		distortionPreGain = 5.0,
+		delayMix = 0.5,
+	    delayTime = 0.5,
+		delayFeedback = 5
+		|
+
+	var sig = SoundIn.ar(0);
+	// MACHINERY FOR SAMPLING THE SIGNAL
+	var phase = Phasor.ar(0, 1, 0, chunkSize);
+	// btw this is already guaranteed to be only a single-sample trigger
+	// Trig.ar is not needed
+	var trig = HPZ1.ar(phase) < 0;
+	var partition = PulseCount.ar(trig) % numChunks;
+	var fixed_timing_reset_trig = Impulse.ar(10);
+	// write to buffers that will contain the waveform data we send via OSC
+	BufWr.ar(sig, relay_buffer0, phase + (chunkSize * partition));
+	BufWr.ar(sig, relay_buffer1, phase + (chunkSize * partition));
+
+	// send data as soon as it's available and orrect
+	SendReply.ar(trig, '/buffer_refresh', partition);
+	// or send data at a specified framerate. This is wrong if you're sending a real audio signal
+	//SendReply.ar(fixed_timing_reset_trig, '/buffer_refresh', partition);
+
+	// what audio to return from the function
+	Out.ar(out, sig); //sig_reverb + sig);
+	}).add;
 
 OSCdef(\k, { |msg|
 	// the partition to retrieve is the one BEFORE the latest transition point
@@ -104,17 +132,10 @@ OSCdef(\k, { |msg|
 
 }, '/buffer_refresh');
 
-synth.onFree {
-	OSCdef(\k).free;
-	// original code example leaks buffer references
-	// that is also not a good habit
-	relay_buffer0.free;
-	relay_buffer1.free;
-};
-
 // listen to OSC messages from the browser, via the node.js bridge
+// TODO: these OSC Funcs are probably leaking memory cause they
+// don't ever get cleaned up...
 OSCFunc(
-
 	{ arg msg, time, addr, recvPort;
 
 		//post('Received message to path: ');
@@ -131,25 +152,48 @@ OSCFunc(
 		//msg[1].postln;
 		synth.set(\distortionPreGain, msg[1]);
 	}, '/distortionPreGain');
-osc_receive = OSCFunc(
+OSCFunc(
 	{ arg msg, time, addr, recvPort;
 		//msg[1].postln;
 		synth.set(\delayMix, msg[1]);
 }, '/delayMix');
-osc_receive = OSCFunc(
+OSCFunc(
 	{ arg msg, time, addr, recvPort;
 		//msg[1].postln;
 		synth.set(\delayTime, msg[1]);
 }, '/delayTime');
-osc_receive = OSCFunc(
+OSCFunc(
 	{ arg msg, time, addr, recvPort;
 		//msg[1].postln;
 		synth.set(\delayFeedback, msg[1]);
 }, '/delayFeedback');
-osc_receive = OSCFunc(
+OSCFunc(
 	{ arg msg, time, addr, recvPort;
 		chunkDownsample = msg[1];
 }, '/chunkDownsample');
+OSCFunc(
+	{ arg msg, time, addr, recvPort;
+		chunkDownsample = msg[1];
+}, '/chunkDownsample');
+OSCFunc(
+	{ arg msg, time, addr, recvPort;
+		'setting effect'.postln;
+		msg[1].postln;
+		synth.free; // stop the last effect
+		synth = Synth.new(msg[1]);
+}, '/setEffect');
+
+
+/*
+	TODO: clean up stuff??
+synth.onFree {
+			OSCdef(\k).free;
+			// original code example leaks buffer references
+			// that is also not a good habit
+			relay_buffer0.free;
+			relay_buffer1.free;
+	*/
+
 
 
 } // end wait for boot
