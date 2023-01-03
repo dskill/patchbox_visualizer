@@ -76,6 +76,7 @@ function GlitchDistortionEffect({ waveformTexture, waveformRms, waveformRmsAccum
 {
   const ref = useRef()
   const { width, height } = useThree((state) => state.viewport)
+  const [glitchStrength, setGlitchStrength] = useState(0.0)
 
   // use controls with leva. Add amplitude float
   const [props, set] = useControls(() => ({
@@ -100,12 +101,17 @@ function GlitchDistortionEffect({ waveformTexture, waveformRms, waveformRmsAccum
     scope_scale_y: { value: 1.0, min: 0, max: 1, step: 0.01, onChange: (value) => { ref.current.iAmplitude = value }, transient: false },
   }))
 
+  
+
   // update the uniforms
   useFrame((state, delta) =>
   {
     ref.current.time += delta
     ref.current.iWaveformRms = waveformRms
     ref.current.iWaveformRmsAccum = waveformRmsAccum
+    let distortion_0_1 = math.smoothstep(1.0, 200.0, props.distortionPreGain)
+    let rms_0_1 = math.smoothstep(0.005, 0.1, waveformRms[1])
+    setGlitchStrength(rms_0_1 * distortion_0_1 * 10.0)
   })
 
   // send OSC messages only on start
@@ -131,11 +137,12 @@ function GlitchDistortionEffect({ waveformTexture, waveformRms, waveformRmsAccum
 
     <EffectComposer>
       <Glitch
-      delay={[.0, .05]} // min and max glitch delay
-      duration={[0.05, .4]} // min and max glitch duration
-      mode={GlitchMode.Mild} // glitch mode
+      delay={[1-glitchStrength, 1-glitchStrength]} // min and max glitch delay
+      duration={[0.15, .05]} // min and max glitch duration
+      mode={GlitchMode.Wild} // glitch mode
+      dtSize={4}
       active // turn on/off the effect (switches between "mode" prop and GlitchMode.DISABLED)
-      strength={[ (props.distortionPreGain - 1) / 50.0, (props.distortionPreGain - 1) / 50.0]} // min and max glitch strength
+      strength={[ 0, glitchStrength]} // min and max glitch strength
       />
     </EffectComposer>
     </>
