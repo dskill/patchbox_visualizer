@@ -16,6 +16,11 @@ body,
 body {
   background: black;
   color: white;
+
+  position: fixed;
+  overscroll-behavior-y: none;
+  cursor: url('../public/cursor.png') 39 39, auto;
+
 }
 
 h1 {

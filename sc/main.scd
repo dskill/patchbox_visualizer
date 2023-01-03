@@ -146,6 +146,11 @@ osc_receive = OSCFunc(
 		//msg[1].postln;
 		synth.set(\delayFeedback, msg[1]);
 }, '/delayFeedback');
+osc_receive = OSCFunc(
+	{ arg msg, time, addr, recvPort;
+		chunkDownsample = msg[1];
+}, '/chunkDownsample');
+
 
 } // end wait for boot
 );

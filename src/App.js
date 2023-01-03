@@ -16,20 +16,18 @@ const waveformTexture = new WaveformTexture(resolution);
 export default function App()
 {
   const searchParams = new URLSearchParams(window.location.search)
-  let url_param_gui = searchParams.get('gui')
-  const effects = ["Debug", "Distortion", "Scope"]
+  //let url_param_gui = searchParams.get('gui')
+  const effects = ["Distortion", "Debug", "Scope"]
   const [currentEffect, setEffect] = useState(0);
   const [waveformRms, setWaveformRms] = useState([0, 0, 0, 0]);
   const [waveformRmsAccum, setWaveformRmsAccum] = useState([0, 0, 0, 0]);
 
   let props = useControls({
-
     effects: {
       value: effects[0],
       options: effects,
       onChange: (value) =>
       {
-        console.log(value)
         setEffect(value)
       }
     },
@@ -38,9 +36,16 @@ export default function App()
       options: [32, 64, 128, 256, 512, 1024, 2048, 4096],
       onChange: (value) =>
       {
-        console.log(value)
         oscNetworkBridge.setResolution(value)
         waveformTexture.setResolution(value)
+      }
+    },
+    downsample: {
+      value: 16,
+      options: [1, 2, 4, 8, 16, 32, 64, 128, 256],
+      onChange: (value) =>
+      {
+        oscNetworkBridge.send("chunkDownsample", value)
       }
     },
   })
@@ -71,7 +76,7 @@ export default function App()
         //oneLineLabels // default = false, alternative layout for labels, with labels and fields on separate rows
         //hideTitleBar // default = false, hides the GUI header
         //collapsed // default = false, when true the GUI is collpased
-        hidden={url_param_gui == null} // default = false, when true the GUI is hidden
+        //hidden={url_param_gui == null} // default = false, when true the GUI is hidden
       />
 
 

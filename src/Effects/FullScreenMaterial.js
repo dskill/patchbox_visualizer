@@ -132,8 +132,10 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 
 	
 	float ring = sdEffectBlend(uvCentered, pinch, waveform0);
-	ring = abs( sin(ring*2.0 - iWaveformRmsAccum.r*.1));
 	ring -= .5;
+	ring = abs(ring);
+	//ring = abs( sin(ring*2.0 - iWaveformRmsAccum.r*.1));
+	//ring -= .5;
 	ring = pow(ring, 1.2);
 	
 	color.r = 1.0 * pow(smoothstep(0.15*pinch,.001*pinch, ring),4.);
@@ -144,8 +146,8 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 	ring2 += .5;
 	
 	ring2 = abs(ring2);
-	ring2 = abs( sin(ring2*2.0 - abs(iWaveformRmsAccum.g)*.2));
-	ring2 = pow(.5-ring2, 1.2);
+	//ring2 = abs( sin(ring2*2.0 - abs(iWaveformRmsAccum.g)*.2));
+	//ring2 = pow(.5-ring2, 1.2);
 
 	color.r += 1.0 * pow(smoothstep(0.25*pinch,.001*pinch, ring2),4.);
 	color.g += .7 * pow(smoothstep(0.1*pinch,.001*pinch, ring2),4.);
