@@ -46,7 +46,7 @@ function AsciiRenderer({
 
   // Set size
   useEffect(() => {
-    effect.setSize(size.width, size.height)
+    effect.setSize(size.width/4, size.height/4)
   }, [effect, size])
 
   // Take over render-loop (that is what the index is for)
