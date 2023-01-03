@@ -3,6 +3,15 @@
 NetAddr.langPort.postln;
 
 
+/*
+// for windows (focusrite)
+//ServerOptions.devices; // all devices
+//ServerOptions.outDevices; // all devices
+o = Server.default.options;
+o.inDevice_(ServerOptions.devices[20]);
+o.outDevice_(ServerOptions.devices[20]);
+*/
+
 s.boot;
 (
 s.waitForBoot{
@@ -20,6 +29,7 @@ var chunkSize = 1024; // 2 waveforms at 128 resolution is about the most the PI 
 // we should be fine.
 
 var chunkDownsample = 32;
+var inputChannel = 0;
 var numChunks = 16;
 var relay_buffer0 = Buffer.alloc(s, chunkSize * numChunks);
 var relay_buffer1 = Buffer.alloc(s, chunkSize * numChunks);
@@ -40,7 +50,7 @@ SynthDef.new(\default, { |out,
 		delayFeedback = 5
 		|
 
-	var sig = SoundIn.ar(0);
+	var sig = SoundIn.ar(inputChannel);
 	//var sig = MulAdd(SinOsc.ar(400), 0.4,0);
 	//var sig = BufRd.ar(1, solobuffer, Phasor.ar(0, BufRateScale.kr(solobuffer), 0, BufFrames.kr(solobuffer)), 1, 2);
 
@@ -86,7 +96,7 @@ SynthDef.new(\default, { |out,
 
 SynthDef.new(\bypass, { |out|
 
-	var sig = SoundIn.ar(0);
+	var sig = SoundIn.ar(inputChannel);
 
 	// MACHINERY FOR SAMPLING THE SIGNAL
 	var phase = Phasor.ar(0, 1, 0, chunkSize);
@@ -102,7 +112,7 @@ SynthDef.new(\bypass, { |out|
 
 SynthDef.new(\scopeDistortion, { |out, distortionPreGain = 1.0|
 
-	var sig = SoundIn.ar(0);
+	var sig = SoundIn.ar(inputChannel);
 
 	// avg distortion volume
 	var rmsSize = 256;
@@ -192,6 +202,8 @@ OSCFunc(
 		synth = Synth.new(msg[1]);
 }, '/setEffect');
 
+// start with the default synth active
+synth = Synth.new(\default);
 /*
 	TODO: clean up stuff??
 synth.onFree {

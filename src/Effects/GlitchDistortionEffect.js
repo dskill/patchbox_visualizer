@@ -97,7 +97,7 @@ function GlitchDistortionEffect({ waveformTexture, waveformRms, waveformRmsAccum
         oscNetworkBridge.send("chunkDownsample", value)
       }
     },
-    distortionPreGain: { value: 1, min: 1, max: 200, step: 0.01, onChange: (value) => { oscNetworkBridge.send('distortionPreGain', value) }, transient: false },
+    distortionPreGain: { value: 100, min: 1, max: 200, step: 0.01, onChange: (value) => { oscNetworkBridge.send('distortionPreGain', value) }, transient: false },
     scope_scale_y: { value: 1.0, min: 0, max: 1, step: 0.01, onChange: (value) => { ref.current.iAmplitude = value }, transient: false },
   }))
 
@@ -117,7 +117,7 @@ function GlitchDistortionEffect({ waveformTexture, waveformRms, waveformRmsAccum
   // send OSC messages only on start
   useEffect(() =>
   {
-    setDpr(.25)
+    setDpr(.1)
     set({ downsample: 4 })
     set({ resolution: 256 })
     set({ distortionPreGain: 1 })
@@ -141,7 +141,7 @@ function GlitchDistortionEffect({ waveformTexture, waveformRms, waveformRmsAccum
       duration={[0.15, .05]} // min and max glitch duration
       mode={GlitchMode.Wild} // glitch mode
       dtSize={4}
-      active // turn on/off the effect (switches between "mode" prop and GlitchMode.DISABLED)
+      active = {glitchStrength > .02}// turn on/off the effect (switches between "mode" prop and GlitchMode.DISABLED)
       strength={[ 0, glitchStrength]} // min and max glitch strength
       />
     </EffectComposer>
