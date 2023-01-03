@@ -21,7 +21,7 @@ export default function App()
 {
   const searchParams = new URLSearchParams(window.location.search)
   //let url_param_gui = searchParams.get('gui')
-  const effects = ["Glitch Distortion", "Distortion", "Scope", "Scope Distortion",  "Debug"]
+  const effects = [ "Debug", "Glitch Distortion", "Distortion", "Scope", "Scope Distortion"]
   const [currentEffect, setEffect] = useState(0);
   const [waveformRms, setWaveformRms] = useState([0, 0, 0, 0]);
   const [waveformRmsAccum, setWaveformRmsAccum] = useState([0, 0, 0, 0]);
