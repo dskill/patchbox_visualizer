@@ -8,6 +8,7 @@ import { WaveformTexture } from './WaveformTexture'
 import FullScreenEffect from './Effects/FullScreenEffect'
 import DistortionEffect from './Effects/DistortionEffect'
 import ScopeEffect from './Effects/ScopeEffect'
+import ScopeDistortionEffect from './Effects/ScopeDistortionEffect.js'
 
 const resolution = 512;
 const oscNetworkBridge = new OSCNetworkBridge(resolution);
@@ -17,7 +18,7 @@ export default function App()
 {
   const searchParams = new URLSearchParams(window.location.search)
   //let url_param_gui = searchParams.get('gui')
-  const effects = ["Distortion", "Debug", "Scope"]
+  const effects = ["Distortion", "Debug", "Scope", "Scope Distortion"]
   const [currentEffect, setEffect] = useState(0);
   const [waveformRms, setWaveformRms] = useState([0, 0, 0, 0]);
   const [waveformRmsAccum, setWaveformRmsAccum] = useState([0, 0, 0, 0]);
@@ -74,6 +75,8 @@ export default function App()
               return <DistortionEffect {...props} />
             case 'Scope':
               return <ScopeEffect {...props} />
+            case 'Scope Distortion':
+              return <ScopeDistortionEffect {...props} />
             default:
               return null
           }

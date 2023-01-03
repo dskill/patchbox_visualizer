@@ -1,7 +1,7 @@
 
 import { useRef, useState, useEffect } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { FullScreenMaterial } from './FullScreenMaterial'
+import { ScopeMaterial } from './ScopeMaterial'
 import { useControls } from 'leva'
 
 // smoothstep function
@@ -16,14 +16,18 @@ const math = {
   },
 }
 
-function DistortionEffect({ waveformTexture, waveformRms, waveformRmsAccum, oscNetworkBridge, ...global_props })
+function ScopeDistortionEffect({ waveformTexture, waveformRms, waveformRmsAccum, oscNetworkBridge, ...global_props })
 {
   let effectParams0 = [0, 0, 0, 0];
   let effectParams1 = [0, 0, 0, 0];
 
+  const ref = useRef()
+  const { width, height } = useThree((state) => state.viewport)
+
+  // use controls with leva. Add amplitude float
   const [, set] = useControls(() => ({
     resolution: {
-      value: 1024,
+      value: 256,
       options: [32, 64, 128, 256, 512, 1024, 2048, 4096],
       onChange: (value) =>
       {
@@ -32,7 +36,7 @@ function DistortionEffect({ waveformTexture, waveformRms, waveformRmsAccum, oscN
       }
     },
     downsample: {
-      value: 8,
+      value: 4,
       options: [1, 2, 4, 8, 16, 32, 64, 128, 256],
       onChange: (value) =>
       {
@@ -40,10 +44,8 @@ function DistortionEffect({ waveformTexture, waveformRms, waveformRmsAccum, oscN
       }
     },
     distortionPreGain: { value: 1, min: 1, max: 200, step: 0.01, onChange: (value) => { oscNetworkBridge.send('distortionPreGain', value) } },
+    amplitude: { value: 1.0, min: 0, max: 1, step: 0.01, onChange: (value) => { ref.current.iAmplitude = value } },
   }))
-
-  const ref = useRef()
-  const { width, height } = useThree((state) => state.viewport)
 
   // update the uniforms
   useFrame((state, delta) =>
@@ -51,42 +53,22 @@ function DistortionEffect({ waveformTexture, waveformRms, waveformRmsAccum, oscN
     ref.current.time += delta
     ref.current.iWaveformRms = waveformRms
     ref.current.iWaveformRmsAccum = waveformRmsAccum
-
-    // update the uniforms
-    try {
-    effectParams0[0] = 0
-    effectParams0[1] = 0
-    effectParams0[2] = 0
-    effectParams0[3] = distortionPreGain.value / 200.0
-    effectParams1[0] = 0
-    ref.current.iEffectParams0 = effectParams0
-    ref.current.iEffectParams1 = effectParams1
-    } catch (e) {
-      console.log("error: ", e)
-    }
   })
 
   // send OSC messages only on start
   useEffect(() =>
   {
-    // start the effect
-    set({ downsample: 8 })
-    set({ resolution: 512 })
-    oscNetworkBridge.send('setEffect', 'default')
-
-    // set defaults
-    oscNetworkBridge.send('reverbMix', 0)
-    oscNetworkBridge.send('delayMix', 0)
-    oscNetworkBridge.send('delayTime', 0)
-    oscNetworkBridge.send('delayFeedback', 0)
+    set({ downsample: 4 })
+    set({ resolution: 256 })
+    set({ distortionPreGain: 1 })
+    oscNetworkBridge.send('setEffect', 'scopeDistortion')
   }, [])  // empty array means effect will only be applied once
-
 
   return (
     <mesh scale={[width, height, 1]}>
       <planeGeometry />
-      <fullScreenMaterial ref={ref}
-        key={FullScreenMaterial.key}
+      <scopeMaterial ref={ref}
+        key={ScopeMaterial.key}
         toneMapped={true}
         iWaveformTexture0={waveformTexture.texture}
       />
@@ -94,4 +76,4 @@ function DistortionEffect({ waveformTexture, waveformRms, waveformRmsAccum, oscN
   )
 }
 
-export default DistortionEffect
+export default ScopeDistortionEffect

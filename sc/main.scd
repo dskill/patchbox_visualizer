@@ -84,35 +84,43 @@ SynthDef.new(\default, { |out,
 	Out.ar(out, final_sig); //sig_reverb + sig);
 	}).add;
 
-
-
-SynthDef.new(\bypass, { |out,
-		reverbMix = 0.5,
-		distortionPreGain = 5.0,
-		delayMix = 0.5,
-	    delayTime = 0.5,
-		delayFeedback = 5
-		|
+SynthDef.new(\bypass, { |out|
 
 	var sig = SoundIn.ar(0);
+
 	// MACHINERY FOR SAMPLING THE SIGNAL
 	var phase = Phasor.ar(0, 1, 0, chunkSize);
-	// btw this is already guaranteed to be only a single-sample trigger
-	// Trig.ar is not needed
 	var trig = HPZ1.ar(phase) < 0;
 	var partition = PulseCount.ar(trig) % numChunks;
 	var fixed_timing_reset_trig = Impulse.ar(30);
 	// write to buffers that will contain the waveform data we send via OSC
 	BufWr.ar(sig, relay_buffer0, phase + (chunkSize * partition));
 	BufWr.ar(sig, relay_buffer1, phase + (chunkSize * partition));
-
-	// send data as soon as it's available and orrect
-	//SendReply.ar(trig, '/buffer_refresh', partition);
-	// or send data at a specified framerate. This is wrong if you're sending a real audio signal
 	SendReply.ar(fixed_timing_reset_trig, '/buffer_refresh', partition);
+	Out.ar(out, sig);
+	}).add;
 
-	// what audio to return from the function
-	Out.ar(out, sig); //sig_reverb + sig);
+SynthDef.new(\scopeDistortion, { |out, distortionPreGain = 1.0|
+
+	var sig = SoundIn.ar(0);
+
+	// avg distortion volume
+	var rmsSize = 256;
+	var sig_distort_raw = (sig * distortionPreGain).distort;
+	var ampBefore = (RunningSum.ar(sig.squared, rmsSize) / rmsSize).sqrt;
+	var ampAfter = (RunningSum.ar(sig_distort_raw.squared, rmsSize) / rmsSize).sqrt;
+	var sig_distort =  sig_distort_raw * min(10, (ampBefore / max(0.01, ampAfter)));
+
+	// MACHINERY FOR SAMPLING THE SIGNAL
+	var phase = Phasor.ar(0, 1, 0, chunkSize);
+	var trig = HPZ1.ar(phase) < 0;
+	var partition = PulseCount.ar(trig) % numChunks;
+	var fixed_timing_reset_trig = Impulse.ar(30);
+	// write to buffers that will contain the waveform data we send via OSC
+	BufWr.ar(sig, relay_buffer0, phase + (chunkSize * partition));
+	BufWr.ar(sig_distort, relay_buffer1, phase + (chunkSize * partition));
+	SendReply.ar(fixed_timing_reset_trig, '/buffer_refresh', partition);
+	Out.ar(out, sig_distort);
 	}).add;
 
 OSCdef(\k, { |msg|
