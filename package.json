@@ -23,6 +23,7 @@
     "react-scripts": "5.0.1",
     "short-uuid": "4.2.0",
     "three": "^0.139.2",
+    "three-stdlib": "^2.21.5",
     "v8": "0.1.0"
   },
   "scripts": {

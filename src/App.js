@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
 import { Leva, useControls } from 'leva'
 
