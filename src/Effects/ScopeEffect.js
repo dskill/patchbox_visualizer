@@ -16,7 +16,7 @@ const math = {
   },
 }
 
-function ScopeEffect({ waveformTexture, waveformRms, waveformRmsAccum, oscNetworkBridge, ...global_props })
+function ScopeEffect({ waveformTexture, waveformRms, waveformRmsAccum, oscNetworkBridge, setDpr, ...global_props })
 {
   let effectParams0 = [0, 0, 0, 0];
   let effectParams1 = [0, 0, 0, 0];
@@ -57,6 +57,7 @@ function ScopeEffect({ waveformTexture, waveformRms, waveformRmsAccum, oscNetwor
   // send OSC messages only on start
   useEffect(() =>
   {
+    setDpr(1)
     set({ downsample: 4 })
     set({ resolution: 256 })
     oscNetworkBridge.send('setEffect', 'bypass')

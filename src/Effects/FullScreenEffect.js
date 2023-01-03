@@ -16,7 +16,7 @@ const math = {
   },
 }
 
-function FullScreenEffect({ waveformTexture, waveformRms, waveformRmsAccum, oscNetworkBridge, ...global_props })
+function FullScreenEffect({ waveformTexture, waveformRms, waveformRmsAccum, oscNetworkBridge, setDpr,  ...global_props })
 {
   let effectParams0 = [0, 0, 0, 0];
   let effectParams1 = [0, 0, 0, 0];
@@ -73,6 +73,7 @@ function FullScreenEffect({ waveformTexture, waveformRms, waveformRmsAccum, oscN
   // send OSC messages only on start
   useEffect(() =>
   {
+    setDpr(1)
     set({ downsample: 8 })
     set({ resolution: 1024 })
     // start the effect

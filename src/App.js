@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
-import { Canvas, useFrame } from '@react-three/fiber'
+import { Canvas, useFrame, useThree} from '@react-three/fiber'
 import { Leva, useControls } from 'leva'
+//https://github.com/pmndrs/drei/#performance -->
+import { AdaptiveDpr } from '@react-three/drei' 
 
 import { OSCNetworkBridge } from './OSCNetworkBridge.js'
 import { WaveformTexture } from './WaveformTexture'
@@ -9,6 +11,7 @@ import FullScreenEffect from './Effects/FullScreenEffect'
 import DistortionEffect from './Effects/DistortionEffect'
 import ScopeEffect from './Effects/ScopeEffect'
 import ScopeDistortionEffect from './Effects/ScopeDistortionEffect.js'
+import GlitchDistortionEffect from './Effects/GlitchDistortionEffect.js'
 
 const resolution = 512;
 const oscNetworkBridge = new OSCNetworkBridge(resolution);
@@ -18,7 +21,7 @@ export default function App()
 {
   const searchParams = new URLSearchParams(window.location.search)
   //let url_param_gui = searchParams.get('gui')
-  const effects = ["Distortion", "Debug", "Scope", "Scope Distortion"]
+  const effects = ["Distortion", "Debug", "Scope", "Scope Distortion", "Glitch Distortion"]
   const [currentEffect, setEffect] = useState(0);
   const [waveformRms, setWaveformRms] = useState([0, 0, 0, 0]);
   const [waveformRmsAccum, setWaveformRmsAccum] = useState([0, 0, 0, 0]);
@@ -34,10 +37,13 @@ export default function App()
     },
   })
 
+  const [dpr, setDpr] = useState(1.0)
+
   props.waveformTexture = waveformTexture
   props.waveformRms = waveformRms
   props.waveformRmsAccum = waveformRmsAccum
   props.oscNetworkBridge = oscNetworkBridge
+  props.setDpr = setDpr
   //props.currentEffect = currentEffect;
 
   function UpdateLoop({ waveformRms })
@@ -52,7 +58,7 @@ export default function App()
     })
   }
 
-  return (
+  return ( 
     <>
       <Leva
         //fill // default = false,  true makes the pane fill the parent dom node it's rendered in
@@ -63,8 +69,7 @@ export default function App()
         //hidden={url_param_gui == null} // default = false, when true the GUI is hidden
       />
 
-
-      <Canvas linear>
+      <Canvas linear dpr={dpr}>
         {(() =>
         {
           switch (currentEffect)
@@ -77,6 +82,8 @@ export default function App()
               return <ScopeEffect {...props} />
             case 'Scope Distortion':
               return <ScopeDistortionEffect {...props} />
+            case 'Glitch Distortion':
+                return <GlitchDistortionEffect {...props} />
             default:
               return null
           }
