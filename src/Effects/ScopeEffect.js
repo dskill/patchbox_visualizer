@@ -36,12 +36,6 @@ function ScopeEffect({waveformTexture, waveformRms, waveformRmsAccum, oscNetwork
   
   // send OSC messages only on start
   useEffect(() => {
-    // set defaults
-    oscNetworkBridge.send('reverbMix', 0)
-    oscNetworkBridge.send('delayMix', 0)
-    oscNetworkBridge.send('delayTime', 0)
-    oscNetworkBridge.send('delayFeedback', 0)
-    oscNetworkBridge.send('distortionPreGain', 1)
     oscNetworkBridge.send('setEffect', 'bypass')
   }, [])  // empty array means effect will only be applied once
 

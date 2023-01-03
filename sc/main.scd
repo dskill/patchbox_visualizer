@@ -2,10 +2,10 @@
 //~o.sendMsg("/hello", "there");    // send the application the message "hello" with the
 NetAddr.langPort.postln;
 
+
 s.boot;
 (
 s.waitForBoot{
-
 
 // from the wonderful forum post:
 // https://scsynth.org/t/is-it-possible-to-get-the-output-of-a-ugen-as-an-array-of-floats-audio-buffer/6539/14
@@ -26,10 +26,11 @@ var relay_buffer1 = Buffer.alloc(s, chunkSize * numChunks);
 var relay_buffer2 = Buffer.alloc(s, 4096 * 2);
 var synth;
 
+var mylerp = { arg a, b, t; MulAdd(a, t) + MulAdd(b, (1.0-t)) };
+
+
 	//var solobuffer = Buffer.read(s, "/Users/drew/src/patchbox_visualizer/assets/music/solo.wav");
 	//var solobuffer = Buffer.read(s, "/Users/drew/src/patchbox_visualizer/assets/music/guitar-tuning.wav");
-
-var mylerp = { arg a, b, t; MulAdd(a, t) + MulAdd(b, (1.0-t)) };
 
 SynthDef.new(\default, { |out,
 		reverbMix = 0.5,
@@ -100,15 +101,15 @@ SynthDef.new(\bypass, { |out,
 	// Trig.ar is not needed
 	var trig = HPZ1.ar(phase) < 0;
 	var partition = PulseCount.ar(trig) % numChunks;
-	var fixed_timing_reset_trig = Impulse.ar(10);
+	var fixed_timing_reset_trig = Impulse.ar(30);
 	// write to buffers that will contain the waveform data we send via OSC
 	BufWr.ar(sig, relay_buffer0, phase + (chunkSize * partition));
 	BufWr.ar(sig, relay_buffer1, phase + (chunkSize * partition));
 
 	// send data as soon as it's available and orrect
-	SendReply.ar(trig, '/buffer_refresh', partition);
+	//SendReply.ar(trig, '/buffer_refresh', partition);
 	// or send data at a specified framerate. This is wrong if you're sending a real audio signal
-	//SendReply.ar(fixed_timing_reset_trig, '/buffer_refresh', partition);
+	SendReply.ar(fixed_timing_reset_trig, '/buffer_refresh', partition);
 
 	// what audio to return from the function
 	Out.ar(out, sig); //sig_reverb + sig);
@@ -182,7 +183,6 @@ OSCFunc(
 		synth.free; // stop the last effect
 		synth = Synth.new(msg[1]);
 }, '/setEffect');
-
 
 /*
 	TODO: clean up stuff??
