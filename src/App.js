@@ -31,26 +31,9 @@ export default function App()
         setEffect(value)
       }
     },
-    resolution: {
-      value: resolution,
-      options: [32, 64, 128, 256, 512, 1024, 2048, 4096],
-      onChange: (value) =>
-      {
-        oscNetworkBridge.setResolution(value)
-        waveformTexture.setResolution(value)
-      }
-    },
-    downsample: {
-      value: 16,
-      options: [1, 2, 4, 8, 16, 32, 64, 128, 256],
-      onChange: (value) =>
-      {
-        oscNetworkBridge.send("chunkDownsample", value)
-      }
-    },
   })
 
-  props.waveformTexture = waveformTexture.texture
+  props.waveformTexture = waveformTexture
   props.waveformRms = waveformRms
   props.waveformRmsAccum = waveformRmsAccum
   props.oscNetworkBridge = oscNetworkBridge
