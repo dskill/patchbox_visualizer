@@ -3,14 +3,13 @@
 NetAddr.langPort.postln;
 
 
-/*
+
 // for windows (focusrite)
 //ServerOptions.devices; // all devices
 //ServerOptions.outDevices; // all devices
 o = Server.default.options;
 o.inDevice_(ServerOptions.devices[20]);
 o.outDevice_(ServerOptions.devices[20]);
-*/
 
 s.boot;
 (

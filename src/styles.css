@@ -15,22 +15,38 @@ body,
 
 body {
   background: black;
-  color: white;
-
+  color: rgb(148, 148, 148);
   position: fixed;
   overscroll-behavior-y: none;
   cursor: url('../public/cursor.png') 39 39, auto;
+}
 
+h2 {
+  font-family: 'Open Sans', sans-serif;
+  font-size: 30px;
+  font-weight: 300;
+  line-height: 32px;
+  margin: 0 0 72px;
+  text-align: center;
+}
+
+p {
+  color: #685206;
+  font-family: 'Helvetica Neue', sans-serif;
+  font-size: 14px;
+  line-height: 24px;
+  margin: 0 0 24px;
+  text-align: justify;
+  text-justify: inter-word;
 }
 
 h1 {
   font-variant-numeric: tabular-nums;
-  margin: 0;
-  padding: 0;
-  font-family: 'Inter var', sans-serif;
-  font-size: 1em;
-  font-weight: 400;
-  position: absolute;
-  top: 3rem;
-  left: 3rem;
+  font-size: 10em;
+  font-family: 'Helvetica Neue', sans-serif;
+  font-weight: bold;
+  letter-spacing: -1px;
+  line-height: 1;
+  text-align: center;
+  vertical-align: middle;
 }

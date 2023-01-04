@@ -13,46 +13,57 @@ import ScopeEffect from './Effects/ScopeEffect'
 import ScopeDistortionEffect from './Effects/ScopeDistortionEffect.js'
 import GlitchDistortionEffect from './Effects/GlitchDistortionEffect.js'
 
-
 let resolution = 512;
-let oscNetworkBridge = new OSCNetworkBridge(resolution, window.location.hostname);
+let oscNetworkBridge = new OSCNetworkBridge(resolution, 'localhost');
 let waveformTexture = new WaveformTexture(resolution);
 
 export default function App()
 {
   const searchParams = new URLSearchParams(window.location.search)
   //let url_param_gui = searchParams.get('gui')
+  let url_param_allow_server = searchParams.get('allow_server')
   const effects = [ "Debug", "Glitch Distortion", "Distortion", "Scope", "Scope Distortion"]
   const [currentEffect, setEffect] = useState(0);
   const [waveformRms, setWaveformRms] = useState([0, 0, 0, 0]);
   const [waveformRmsAccum, setWaveformRmsAccum] = useState([0, 0, 0, 0]);
+  const [dpr, setDpr] = useState(1.0)
+  const [connected, setConnected] = useState(false)
 
-  let props = useControls({
-    server: { 
-      value: window.location.hostname,
-      onChange: (value) =>
-      {
-        oscNetworkBridge = new OSCNetworkBridge(resolution, value);
-      }
-    },
-    effects: {
+  let controls = {
+      effects: {
       value: effects[0],
       options: effects,
       onChange: (value) =>
       {
         setEffect(value)
       }
-    },
-  })
+    }
+  }
+  if (url_param_allow_server != null) {
+    controls["server"] = {
+      value: window.location.hostname,
+      onChange: (value) =>
+      {
+        oscNetworkBridge = new OSCNetworkBridge(resolution, value);
+      }
+    }
+  }
 
-  const [dpr, setDpr] = useState(1.0)
-
+  let props = useControls(controls)
   props.waveformTexture = waveformTexture
   props.waveformRms = waveformRms
   props.waveformRmsAccum = waveformRmsAccum
   props.oscNetworkBridge = oscNetworkBridge
   props.setDpr = setDpr
 
+  useEffect(() =>
+  {
+    oscNetworkBridge.osc_connection.on('open', () =>
+    {
+      setConnected(true)
+    })
+  }, [])
+  
   function UpdateLoop({ waveformRms })
   {
     useFrame((state, delta, xrFrame) =>
@@ -75,7 +86,7 @@ export default function App()
         //collapsed // default = false, when true the GUI is collpased
         //hidden={url_param_gui == null} // default = false, when true the GUI is hidden
       />
-
+      {connected ? 
       <Canvas linear dpr={dpr}>
         {(() =>
         {
@@ -106,6 +117,8 @@ export default function App()
 
         <UpdateLoop {...props} />
       </Canvas>
+      : <h1>Connecting...</h1>
+    }
     </>
   )
 
