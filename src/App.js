@@ -39,6 +39,8 @@ export default function App()
       }
     }
   }
+  // TODO: allow server does not work currently.  The issue is that the osc bridge on server.js is only listening to localhost
+  // so if you use the IP of the server from a remote machine, the connection fails.  
   if (url_param_allow_server != null) {
     controls["server"] = {
       value: window.location.hostname,
