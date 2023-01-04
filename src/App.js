@@ -14,9 +14,9 @@ import ScopeDistortionEffect from './Effects/ScopeDistortionEffect.js'
 import GlitchDistortionEffect from './Effects/GlitchDistortionEffect.js'
 
 
-let resolution;
-let oscNetworkBridge;
-let waveformTexture;
+let resolution = 512;
+let oscNetworkBridge = new OSCNetworkBridge(resolution, window.location.hostname);
+let waveformTexture = new WaveformTexture(resolution);
 
 export default function App()
 {
@@ -52,14 +52,6 @@ export default function App()
   props.waveformRmsAccum = waveformRmsAccum
   props.oscNetworkBridge = oscNetworkBridge
   props.setDpr = setDpr
-
-   // send OSC messages only on start
-   useEffect(() =>
-   {
-    resolution = 512;
-    oscNetworkBridge = new OSCNetworkBridge(resolution, '192.168.50.125');
-    waveformTexture = new WaveformTexture(resolution);
-   }, [])  // empty array means effect will only be applied once
 
   function UpdateLoop({ waveformRms })
   {
