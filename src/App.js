@@ -10,9 +10,10 @@ import DistortionEffect from './Effects/DistortionEffect'
 import ScopeEffect from './Effects/ScopeEffect'
 import ScopeDistortionEffect from './Effects/ScopeDistortionEffect.js'
 
-const resolution = 512;
-const oscNetworkBridge = new OSCNetworkBridge(resolution);
-const waveformTexture = new WaveformTexture(resolution);
+
+let resolution;
+let oscNetworkBridge;
+let waveformTexture;
 
 export default function App()
 {
@@ -24,6 +25,13 @@ export default function App()
   const [waveformRmsAccum, setWaveformRmsAccum] = useState([0, 0, 0, 0]);
 
   let props = useControls({
+    server: { 
+      value: window.location.hostname,
+      onChange: (value) =>
+      {
+        oscNetworkBridge = new OSCNetworkBridge(resolution, value);
+      }
+    },
     effects: {
       value: effects[0],
       options: effects,
@@ -39,6 +47,14 @@ export default function App()
   props.waveformRmsAccum = waveformRmsAccum
   props.oscNetworkBridge = oscNetworkBridge
   //props.currentEffect = currentEffect;
+
+   // send OSC messages only on start
+   useEffect(() =>
+   {
+    resolution = 512;
+    oscNetworkBridge = new OSCNetworkBridge(resolution, '192.168.50.125');
+    waveformTexture = new WaveformTexture(resolution);
+   }, [])  // empty array means effect will only be applied once
 
   function UpdateLoop({ waveformRms })
   {

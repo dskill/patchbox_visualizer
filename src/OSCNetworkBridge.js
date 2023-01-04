@@ -8,16 +8,15 @@ export class OSCNetworkBridge {
   waveform_update_timer = 0;
   waveformArray0 = [];
   waveformArray1 = [];
-  osc_bridge_ip;
 
-  constructor(waveformResolution = 512) {
+  constructor(waveformResolution = 512, ip) {
     this.waveformArray0.length = waveformResolution
     this.waveformArray1.length = waveformResolution
-    this.osc_bridge_ip = window.location.hostname;
 
     const options = {
-      host: this.osc_bridge_ip,    // @param {string} Hostname of WebSocket server
-      port: 8080           // @param {number} Port of WebSocket server
+      host: ip,    // @param {string} Hostname of WebSocket server
+      port: 8080,           // @param {number} Port of WebSocket server
+      //secure: true
     }
 
     this.osc_connection = new OSC({ plugin: new OSC.WebsocketClientPlugin(options) })

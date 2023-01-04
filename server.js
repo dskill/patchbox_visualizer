@@ -60,7 +60,8 @@ let options = {
   // this is this node server, listening to WS messages from the browser
   wsServer: {
     host: myIP, // 'localhost',    // @param {string} Hostname of WebSocket server
-    port: 8080            // @param {number} Port of WebSocket server
+    port: 8080,            // @param {number} Port of WebSocket server
+    //secure: true
   },
   // this is the supercollider client, where we send messages to supercollider
   udpClient: {
