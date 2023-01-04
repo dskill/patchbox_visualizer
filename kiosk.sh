@@ -4,11 +4,12 @@ echo "Starting Patchbox Visualizer..." > /home/patch/logs/pv_startup.log
 
 # Loop until MY_IP is not null
 # this waits for the WIFI network to be up
-while [ -z "$MY_IP" ]; do
-  MY_IP=$(ip addr show wlan0 | grep -Po 'inet \K[\d.]+')
-  echo "Detected IP: $MY_IP" >> /home/patch/logs/pv_startup.log
-  sleep 1
-done
+#while [ -z "$MY_IP" ]; do
+  #MY_IP=$(ip addr show wlan0 | grep -Po 'inet \K[\d.]+')
+  #echo "Detected IP: $MY_IP" >> /home/patch/logs/pv_startup.log
+  #sleep 1
+#done
+MY_IP = 'localhost'
 
 xset s noblank
 xset s off

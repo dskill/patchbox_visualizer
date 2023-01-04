@@ -5,7 +5,8 @@ const WebSocket = require('ws');
 const OSC = require('osc-js');
 const ip = require("ip");
 
-const myIP = ip.address();
+//const myIP = ip.address();
+const myIP = 'localhost'
 // if myIP is localhost, like below, then things will work w/out wifi
 // otherwise the IP in the browser location bar is wrong and it doesn't
 // this should be fixed at some point. Maybe by using the ip module...
