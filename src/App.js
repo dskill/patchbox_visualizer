@@ -3,6 +3,7 @@ import { Canvas, useFrame, useThree} from '@react-three/fiber'
 import { Leva, useControls } from 'leva'
 //https://github.com/pmndrs/drei/#performance -->
 import { AdaptiveDpr } from '@react-three/drei' 
+import { useSwipeable } from 'react-swipeable';
 
 import { OSCNetworkBridge } from './OSCNetworkBridge.js'
 import { WaveformTexture } from './WaveformTexture'
@@ -22,28 +23,25 @@ export default function App()
   const searchParams = new URLSearchParams(window.location.search)
   //let url_param_gui = searchParams.get('gui')
   let url_param_allow_server = searchParams.get('allow_server')
-  const effects = [ "Debug", "Glitch Distortion", "Distortion", "Scope", "Scope Distortion"]
-  const [currentEffect, setEffect] = useState(0);
   const [waveformRms, setWaveformRms] = useState([0, 0, 0, 0]);
   const [waveformRmsAccum, setWaveformRmsAccum] = useState([0, 0, 0, 0]);
   const [dpr, setDpr] = useState(1.0)
   const [connected, setConnected] = useState(false)
+  const effectOptions = [ "Debug", "Glitch Distortion", "Distortion", "Scope", "Scope Distortion"]
 
-  let controls = {
-      effects: {
-      value: effects[0],
-      options: effects,
-      onChange: (value) =>
-      {
-        setEffect(value)
-      }
-    }
-  }
+  const [{ currentEffect }, setUI] = useControls(() => ({ 
+    currentEffect: {
+      value: 'Debug',
+      transient: false,
+      options:  effectOptions,
+  }}))
+
   // TODO: allow server does not work currently.  The issue is that the osc bridge on server.js is only listening to localhost
   // so if you use the IP of the server from a remote machine, the connection fails.  
   if (url_param_allow_server != null) {
     controls["server"] = {
       value: window.location.hostname,
+      transient: false,
       onChange: (value) =>
       {
         oscNetworkBridge = new OSCNetworkBridge(resolution, value);
@@ -51,12 +49,16 @@ export default function App()
     }
   }
 
-  let props = useControls(controls)
+  let props = {}
   props.waveformTexture = waveformTexture
   props.waveformRms = waveformRms
   props.waveformRmsAccum = waveformRmsAccum
   props.oscNetworkBridge = oscNetworkBridge
   props.setDpr = setDpr
+  props.currentEffect = currentEffect
+  props.setUI = setUI
+  props.effectOptions = effectOptions
+
 
   useEffect(() =>
   {
@@ -78,6 +80,44 @@ export default function App()
     })
   }
 
+  const swipe_config = {
+    delta: 10,                             // min distance(px) before a swipe starts
+    preventDefaultTouchmoveEvent: true,    // preventDefault on touchmove, *See Details*
+    trackTouch: true,                      // track touch input
+    trackMouse: true,                      // track mouse input
+    rotationAngle: 0,                      // set a rotation angle
+  };
+
+  const swipe_handlers = useSwipeable({
+    onSwiped: (eventData) => console.log("User Swiped!", eventData),
+    onSwipedLeft: () => swipe_left(),
+    onSwipedRight: () => swipe_right(),
+    ...swipe_config,
+  }) 
+
+  const swipe_right = () => {
+    let index = props.effectOptions.indexOf(props.currentEffect)
+    if (index + 1 == props.effectOptions.length) {
+      index = 0
+    }
+    props.setUI( {currentEffect: props.effectOptions[index + 1]} )
+  }
+
+  const swipe_left = () => {
+    let index = props.effectOptions.indexOf(props.currentEffect)
+    if (index - 1 < 0) {
+      index = props.effectOptions.length
+    }
+    props.setUI( {currentEffect: props.effectOptions[index - 1]} )
+  }
+
+  const divStyle = {
+    width: '100%',
+    height: '100%',
+    margin: '0px',
+    padding: '0px',
+  };
+  
   return ( 
     <>
       <Leva
@@ -89,6 +129,8 @@ export default function App()
         //hidden={url_param_gui == null} // default = false, when true the GUI is hidden
       />
       {connected ? 
+      // add class 'div_swipe'
+      <div {...swipe_handlers} style={divStyle}>
       <Canvas linear dpr={dpr}>
         {(() =>
         {
@@ -119,6 +161,7 @@ export default function App()
 
         <UpdateLoop {...props} />
       </Canvas>
+      </div>
       : <h1>Connecting...</h1>
     }
     </>
