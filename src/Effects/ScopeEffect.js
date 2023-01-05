@@ -16,35 +16,17 @@ const math = {
   },
 }
 
-function ScopeEffect({ waveformTexture, waveformRms, waveformRmsAccum, oscNetworkBridge, setDpr, ...global_props })
+function ScopeEffect({ waveformTex, waveformRms, waveformRmsAccum, oscNetworkBridge, setDpr, setUI, ...global_props })
 {
-  let effectParams0 = [0, 0, 0, 0];
-  let effectParams1 = [0, 0, 0, 0];
 
   const ref = useRef()
   const { width, height } = useThree((state) => state.viewport)
 
-  // use controls with leva. Add amplitude float
-  const [, set] = useControls(() => ({
-    resolution: {
-      value: 256,
-      options: [32, 64, 128, 256, 512, 1024, 2048, 4096],
-      onChange: (value) =>
-      {
-        oscNetworkBridge.setResolution(value)
-        waveformTexture.setResolution(value)
-      }
-    },
-    downsample: {
-      value: 4,
-      options: [1, 2, 4, 8, 16, 32, 64, 128, 256],
-      onChange: (value) =>
-      {
-        oscNetworkBridge.send("chunkDownsample", value)
-      }
-    },
-    amplitude: { value: 1.0, min: 0, max: 1, step: 0.01, onChange: (value) => { ref.current.iAmplitude = value } },
-  }))
+  useControls(
+    {
+      scope_scale_y: { value: 1.0, min: 0, max: 1, step: 0.01, onChange: (value) => { ref.current.iAmplitude = value } },
+    }
+  )
 
   // update the uniforms
   useFrame((state, delta) =>
@@ -58,18 +40,20 @@ function ScopeEffect({ waveformTexture, waveformRms, waveformRmsAccum, oscNetwor
   useEffect(() =>
   {
     setDpr(1)
-    set({ downsample: 4 })
-    set({ resolution: 256 })
+    setUI({ downsample: 4 })
+    setUI({ resolution: 256 })
     oscNetworkBridge.send('setEffect', 'bypass')
   }, [])  // empty array means effect will only be applied once
 
   return (
     <mesh scale={[width, height, 1]}>
+      {console.log("ScopeEffect Rerendered")}
+      {console.log("waveformTex: ", waveformTex)}
       <planeGeometry />
       <scopeMaterial ref={ref}
         key={ScopeMaterial.key}
         toneMapped={true}
-        iWaveformTexture0={waveformTexture.texture}
+        iWaveformTexture0={waveformTex}
       />
     </mesh>
   )

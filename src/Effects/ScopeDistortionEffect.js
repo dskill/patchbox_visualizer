@@ -16,33 +16,17 @@ const math = {
   },
 }
 
-function ScopeDistortionEffect({ waveformTexture, waveformRms, waveformRmsAccum, oscNetworkBridge, setDpr, ...global_props })
+function ScopeDistortionEffect({ waveformTex, waveformRms, waveformRmsAccum, oscNetworkBridge, setDpr, setUI, ...global_props })
 {
   const ref = useRef()
   const { width, height } = useThree((state) => state.viewport)
-
-  // use controls with leva. Add amplitude float
-  const [props, set] = useControls(() => ({
-    resolution: {
-      value: 256,
-      options: [32, 64, 128, 256, 512, 1024, 2048, 4096],
-      onChange: (value) =>
-      {
-        oscNetworkBridge.setResolution(value)
-        waveformTexture.setResolution(value)
-      }
-    },
-    downsample: {
-      value: 4,
-      options: [1, 2, 4, 8, 16, 32, 64, 128, 256],
-      onChange: (value) =>
-      {
-        oscNetworkBridge.send("chunkDownsample", value)
-      }
-    },
-    distortionPreGain: { value: 1, min: 1, max: 200, step: 0.01, onChange: (value) => { oscNetworkBridge.send('distortionPreGain', value) }, transient: false },
-    scope_scale_y: { value: 1.0, min: 0, max: 1, step: 0.01, onChange: (value) => { ref.current.iAmplitude = value }, transient: false },
-  }))
+  
+  useControls(
+    {
+      distortionPreGain: { value: 1, min: 1, max: 200, step: 0.01, onChange: (value) => { oscNetworkBridge.send('distortionPreGain', value) } },
+      scope_scale_y: { value: 1.0, min: 0, max: 1, step: 0.01, onChange: (value) => { ref.current.iAmplitude = value } },
+    }
+  )
 
   // update the uniforms
   useFrame((state, delta) =>
@@ -56,9 +40,8 @@ function ScopeDistortionEffect({ waveformTexture, waveformRms, waveformRmsAccum,
   useEffect(() =>
   {
     setDpr(1)
-    set({ downsample: 4 })
-    set({ resolution: 256 })
-    set({ distortionPreGain: 1 })
+    setUI({ downsample: 4 })
+    setUI({ resolution: 256 })
     oscNetworkBridge.send('setEffect', 'scopeDistortion')
   }, [])  // empty array means effect will only be applied once
 
@@ -69,7 +52,7 @@ function ScopeDistortionEffect({ waveformTexture, waveformRms, waveformRmsAccum,
       <scopeMaterial ref={ref}
         key={ScopeMaterial.key}
         toneMapped={true}
-        iWaveformTexture0={waveformTexture.texture}
+        iWaveformTexture0={waveformTex}
       />
     </mesh>
     </>

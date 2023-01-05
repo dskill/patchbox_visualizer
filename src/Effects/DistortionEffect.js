@@ -16,31 +16,19 @@ const math = {
   },
 }
 
-function DistortionEffect({ waveformTexture, waveformRms, waveformRmsAccum, oscNetworkBridge, setDpr, ...global_props })
+function DistortionEffect({ waveformTex, waveformRms, waveformRmsAccum, oscNetworkBridge, setDpr, setUI, ...global_props })
 {
   let effectParams0 = [0, 0, 0, 0];
   let effectParams1 = [0, 0, 0, 0];
 
-  const [, set] = useControls(() => ({
-    resolution: {
-      value: 1024,
-      options: [32, 64, 128, 256, 512, 1024, 2048, 4096],
-      onChange: (value) =>
-      {
-        oscNetworkBridge.setResolution(value)
-        waveformTexture.setResolution(value)
+  useControls(
+    {
+      distortionPreGain: {
+        value: 1, min: 1, max: 200, step: 0.01, onChange: (value) => { oscNetworkBridge.send('distortionPreGain', value) }
       }
-    },
-    downsample: {
-      value: 8,
-      options: [1, 2, 4, 8, 16, 32, 64, 128, 256],
-      onChange: (value) =>
-      {
-        oscNetworkBridge.send("chunkDownsample", value)
-      }
-    },
-    distortionPreGain: { value: 1, min: 1, max: 200, step: 0.01, onChange: (value) => { oscNetworkBridge.send('distortionPreGain', value) } },
-  }))
+    }
+  )
+
 
   const ref = useRef()
   const { width, height } = useThree((state) => state.viewport)
@@ -53,15 +41,17 @@ function DistortionEffect({ waveformTexture, waveformRms, waveformRmsAccum, oscN
     ref.current.iWaveformRmsAccum = waveformRmsAccum
 
     // update the uniforms
-    try {
-    effectParams0[0] = 0
-    effectParams0[1] = 0
-    effectParams0[2] = 0
-    effectParams0[3] = distortionPreGain.value / 200.0
-    effectParams1[0] = 0
-    ref.current.iEffectParams0 = effectParams0
-    ref.current.iEffectParams1 = effectParams1
-    } catch (e) {
+    try
+    {
+      effectParams0[0] = 0
+      effectParams0[1] = 0
+      effectParams0[2] = 0
+      effectParams0[3] = distortionPreGain.value / 200.0
+      effectParams1[0] = 0
+      ref.current.iEffectParams0 = effectParams0
+      ref.current.iEffectParams1 = effectParams1
+    } catch (e)
+    {
       console.log("error: ", e)
     }
   })
@@ -71,8 +61,8 @@ function DistortionEffect({ waveformTexture, waveformRms, waveformRmsAccum, oscN
   {
     setDpr(1)
     // start the effect
-    set({ downsample: 8 })
-    set({ resolution: 512 })
+    setUI({ downsample: 8 })
+    setUI({ resolution: 512 })
     oscNetworkBridge.send('setEffect', 'default')
 
     // set defaults
@@ -89,7 +79,7 @@ function DistortionEffect({ waveformTexture, waveformRms, waveformRmsAccum, oscN
       <fullScreenMaterial ref={ref}
         key={FullScreenMaterial.key}
         toneMapped={true}
-        iWaveformTexture0={waveformTexture.texture}
+        iWaveformTexture0={waveformTex}
       />
     </mesh>
   )

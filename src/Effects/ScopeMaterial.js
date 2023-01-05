@@ -10,7 +10,7 @@ const ScopeMaterial = shaderMaterial(
     iTime: 0,
     iWaveformRms: new THREE.Vector4(0, 0, 0, 0),
     iWaveformRmsAccum: new THREE.Vector4(0, 0, 0,0),
-    iAmplitude: 0,
+    iAmplitude: 1,
     iWaveformTexture0: { value: null },
   },
   glsl`

@@ -7,15 +7,15 @@ export class WaveformTexture {
 
     constructor(resolution = 512) {
         this.resolution = resolution;
-        this.size = this.resolution * this.height;
-        this.data = new Float32Array(4 * this.size);
+        const size = this.resolution * this.height;
+        const data = new Float32Array(4 * size);
 
         let color = new THREE.Color('red');
         let r = Math.floor(color.r * 255);
         let g = Math.floor(color.g * 255);
         let b = Math.floor(color.b * 255);
         let a = 255;
-        this.texture = new THREE.DataTexture( this.data, this.resolution, this.height, THREE.RGBAFormat, THREE.FloatType);
+        this.texture = new THREE.DataTexture( data, this.resolution, this.height, THREE.RGBAFormat, THREE.FloatType);
         this.texture.encoding = THREE.LinearEncoding;
 
         this.waveformRms = [0,0,0,0];
@@ -24,8 +24,8 @@ export class WaveformTexture {
     }
 
     update( waveformArray0, waveformArray1 ) {
-    // make an array that concatenates the waveform with itself
-        // so that we can draw a line between the two
+        const size = this.texture.image.width * this.texture.image.height;
+		const data = this.texture.image.data;
 
         // if waveformRmsAccum contains a NaN, set to 0
         // this is from NaN RMS values at startup
@@ -39,20 +39,19 @@ export class WaveformTexture {
         } else if (isNaN(this.waveformRms[1])) {
             this.waveformRms = [0,0,0,0];
         }
-        
-        for (let i = 0; i < this.resolution; i++)
+        for (let i = 0; i < size; i++)
         {
             // for FFT waveformArray[i * 4 + 1] = math.lerp(waveformArray[i * 4 + 1], Math.abs(waveformArray1[i]) * .02, 0.3);
-            this.data[i * 4] = waveformArray0[i];
-            this.data[i * 4 + 1] = waveformArray1[i];
-            this.data[i * 4 + 2] = 0 // unused;
-            this.data[i * 4 + 3] = 0 // unused;
+            data[i * 4] = waveformArray0[i];
+            data[i * 4 + 1] = waveformArray1[i];
+            data[i * 4 + 2] = 0 // unused;
+            data[i * 4 + 3] = 0 // unused;
                
             //RMS
-            this.waveformRms[0] += this.data[i * 4]  * this.data[i * 4];
-            this.waveformRms[1] += this.data[i * 4 + 1]  * this.data[i * 4 + 1];
-            this.waveformRms[2] += this.data[i * 4 + 2]  * this.data[i * 4 + 2];
-            this.waveformRms[3] += this.data[i * 4 + 3]  * this.data[i * 4 + 3];
+            this.waveformRms[0] += data[i * 4]  * data[i * 4];
+            this.waveformRms[1] += data[i * 4 + 1]  * data[i * 4 + 1];
+            this.waveformRms[2] += data[i * 4 + 2]  * data[i * 4 + 2];
+            this.waveformRms[3] += data[i * 4 + 3]  * data[i * 4 + 3];
 
         }
 
@@ -69,10 +68,12 @@ export class WaveformTexture {
     }
 
     setResolution(resolution) {
+        console.log ('setting waveform texture resolution to ' + resolution)
         this.resolution = resolution;
-        this.size = this.resolution * this.height;
-        this.data = new Float32Array(4 * this.size);
-        this.texture = new THREE.DataTexture( this.data, this.resolution, this.height, THREE.RGBAFormat, THREE.FloatType);
+        const size = this.resolution * this.height;
+        const data = new Float32Array(4 * size);
+        this.texture.dispose();
+        this.texture = new THREE.DataTexture( data, this.resolution, this.height, THREE.RGBAFormat, THREE.FloatType);
         this.texture.encoding = THREE.LinearEncoding;
     }
 }
