@@ -107,6 +107,7 @@ export default function App()
         {
           // This function runs at the native refresh rate inside of a shared render-loop
           oscNetworkBridge.update(delta)
+          oscNetworkBridge.sendQueue();
           waveformTexture.update(oscNetworkBridge.waveformArray0, oscNetworkBridge.waveformArray1)
           setWaveformRms(waveformTexture.waveformRms);
           setWaveformRmsAccum(waveformTexture.waveformRmsAccum);

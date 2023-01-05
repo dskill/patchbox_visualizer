@@ -10,6 +10,7 @@ export class OSCNetworkBridge
   waveform_update_timer = 0;
   waveformArray0 = [];
   waveformArray1 = [];
+  queue = [];
 
   constructor(waveformResolution = 512, ip)
   {
@@ -86,9 +87,36 @@ export class OSCNetworkBridge
     this.waveformArray1.length = resolution;
   }
 
+  // Queuing up OSC messages makes sure they are only sent once per frame. Sometimes the UI udpates more often than that.
+  addToQueue(name, value)
+  {
+    // if the key exists, update it. otherwise, add it.
+    for (let i = 0; i < this.queue.length; i++)
+    {
+      if (this.queue[i].name === name)
+      {
+        this.queue[i].value = value;
+        return;
+      }
+    }
+    this.queue.push({name: name, value: value});
+  }
+ 
+  sendQueue()
+  {
+    if (this.is_connected) {
+      for (let i = 0; i < this.queue.length; i++)
+      {
+        this.osc_connection.send(new OSC.Message('/' + this.queue[i].name, this.queue[i].value));
+        //console.log("sending osc message: " + this.queue[i].name + " " + this.queue[i].value);
+      }
+    }
+    this.queue = [];
+  }
 
   send(name, value)
   {
+    this.addToQueue(name, value);
     /*
     if (this.is_connected)
     {
