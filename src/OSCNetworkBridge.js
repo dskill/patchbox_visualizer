@@ -89,6 +89,7 @@ export class OSCNetworkBridge
 
   send(name, value)
   {
+    /*
     if (this.is_connected)
     {
       this.osc_connection.send(new OSC.Message('/' + name, value));
@@ -97,5 +98,6 @@ export class OSCNetworkBridge
     {
       console.log("not connected to osc server");
     }
+    */
   }
 }
