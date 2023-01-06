@@ -58,7 +58,7 @@ function FullScreenEffect({ waveformTex, waveformRms, waveformRmsAccum, oscNetwo
   {
     setDpr(1)
     setUI({ downsample: 8 })
-    setUI({ resolution: 1024 })
+    setUI({ resolution: 256 })
     // start the effect
     oscNetworkBridge.send('setEffect', 'default')
   }, [])  // empty array means effect will only be applied once

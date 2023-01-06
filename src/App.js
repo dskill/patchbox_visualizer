@@ -122,13 +122,14 @@ export default function App()
       rotationAngle: 0,                      // set a rotation angle
     };
 
+    
     const swipe_handlers = useSwipeable({
       onSwiped: (eventData) => console.log("User Swiped!", eventData),
       onSwipedLeft: () => swipe_left(),
       onSwipedRight: () => swipe_right(),
       ...swipe_config,
     })
-
+    
     const swipe_right = () =>
     {
       let index = props.effectOptions.indexOf(props.currentEffect) + 1
@@ -169,7 +170,19 @@ export default function App()
         {connected ?
           // add class 'div_swipe'
           <div {...swipe_handlers} style={divStyle}>
-            <Canvas linear dpr={dpr}>
+            <Canvas linear dpr={dpr} /*add click event to canvas*/ 
+              onDoubleClick={(e) => {
+                // if we're clicking on the right side of the screen then swipe right
+                if (e.clientX > window.innerWidth / 2)
+                {
+                  swipe_right()
+                }
+                else
+                {
+                  swipe_left()
+                }
+              }
+            }>
               {(() =>
               {
                 switch (currentEffect)
