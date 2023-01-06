@@ -53,9 +53,11 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
   vec3 color = vec3(0.0); 
 	float scopeline0 = uvOriginal.y + waveform1 - .5;
 	scopeline0 = abs(scopeline0);
-	color.r = 1.0 * pow(smoothstep(0.065,.001, scopeline0),4.);
-	color.g = 0.3 * pow(smoothstep(0.53,.001, scopeline0),4.);
-	color.b = 0.5 * pow(smoothstep(0.84,.001, scopeline0),4.);
+	color.r += 1.0 * pow(smoothstep(0.065,.001, scopeline0),4.);
+  color.b += 1.0 * pow(smoothstep(0.035,.001, scopeline0),4.);
+  color.g += 1.0 * pow(smoothstep(0.035,.001, scopeline0),4.);
+	color.g += 0.2 * pow(smoothstep(0.33,.001, scopeline0),2.);
+	color.b += .5 * pow(smoothstep(0.44,.001, scopeline0),2.);
 	
   color.rgb += 1.0 * pow(smoothstep(0.01,.001, scopeline0),1.) *  iWaveformRms[1]*2.0;
   color.rgb += color.rgb *  iWaveformRms[1]*10.0;

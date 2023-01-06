@@ -79,30 +79,40 @@ const math = {
   },
 }
 
-function GlitchDistortionEffect({ waveformTex, waveformRms, waveformRmsAccum, oscNetworkBridge, setDpr, setUI, ...global_props })
+function GlitchDistortionEffect({ waveformTex, waveformRms, waveformRmsAccum, oscNetworkBridge, setDpr, setUI, touchPos, ...global_props })
 {
   const ref = useRef()
   const { width, height } = useThree((state) => state.viewport)
   const [glitchStrength, setGlitchStrength] = useState(0.0)
-  const { distortionPreGain } = useControls({ distortionPreGain: { transient: false, value: 1, min: 1, max: 200, step: 0.01, onChange: (value) => { oscNetworkBridge.send('distortionPreGain', value) } } })
+  const [{distortionPreGain}, set] = useControls(() => ({
+    distortionPreGain: { transient: false, value: 1, min: 1, max: 200, step: 0.01, onChange: (value) => { oscNetworkBridge.send('distortionPreGain', value) } },
+    scope_scale_y: { value: 1.0, min: 0, max: 1, step: 0.01, onChange: (value) => { ref.current.iAmplitude = value } },
+}))
+
   // update the uniforms
   useFrame((state, delta) =>
   {
     ref.current.time += delta
-    ref.current.iWaveformRms = waveformRms
-    ref.current.iWaveformRmsAccum = waveformRmsAccum
     let distortion_0_1 = math.smoothstep(1.0, 200.0, distortionPreGain)
     let rms_0_1 = math.smoothstep(0.005, 0.1, waveformRms[1])
-    setGlitchStrength(rms_0_1 * distortion_0_1 * 10.0)
+    setGlitchStrength(rms_0_1 * distortion_0_1 * 1.0)
+    ref.current.iWaveformRms = waveformRms
+    ref.current.iWaveformRmsAccum = waveformRmsAccum
   })
 
+  useEffect(() => 
+  {
+    set( {distortionPreGain: touchPos[1] * 200.0} )
+  }, [touchPos])
+  
   // send OSC messages only on start
   useEffect(() =>
   {
     ref.current.iAmplitude = 1.0;
-    setDpr(.1)
+    setDpr(.2)
     setUI({ downsample: 8 })
     setUI({ resolution: 128 })
+    
     oscNetworkBridge.send('setEffect', 'scopeDistortion')
   }, [])  // empty array means effect will only be applied once
 
@@ -121,8 +131,8 @@ function GlitchDistortionEffect({ waveformTex, waveformRms, waveformRmsAccum, os
         <Glitch
           delay={[1 - glitchStrength, 1 - glitchStrength]} // min and max glitch delay
           duration={[0.15, .05]} // min and max glitch duration
-          mode={GlitchMode.Wild} // glitch mode
-          dtSize={4}
+          mode={GlitchMode.Mild} // glitch mode
+          dtSize={30}
           active={glitchStrength > .02}// turn on/off the effect (switches between "mode" prop and GlitchMode.DISABLED)
           strength={[0, glitchStrength]} // min and max glitch strength
         />

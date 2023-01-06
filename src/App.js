@@ -3,7 +3,6 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { Leva, useControls } from 'leva'
 //https://github.com/pmndrs/drei/#performance -->
 import { AdaptiveDpr } from '@react-three/drei'
-import { useSwipeable } from 'react-swipeable';
 
 import { OSCNetworkBridge } from './OSCNetworkBridge.js'
 import { WaveformTexture } from './WaveformTexture'
@@ -29,6 +28,7 @@ export default function App()
   const [connected, setConnected] = useState(false)
   const [waveformTex, setWaveformTex] = useState(null)
   const effectOptions = ["Debug", "Glitch Distortion", "Distortion", "Scope", "Scope Distortion"]
+  const { x, y } = useMousePosition();
 
   const [{ currentEffect }, setUI] = useControls(() => ({
     currentEffect: {
@@ -83,6 +83,7 @@ export default function App()
   props.setUI = setUI
   props.waveformTex = waveformTex
   props.effectOptions = effectOptions
+  props.touchPos = [x, y]
 
   useEffect(() =>
     {
@@ -113,22 +114,6 @@ export default function App()
           setWaveformRmsAccum(waveformTexture.waveformRmsAccum);
         })
       }
-
-  const swipe_config = {
-      delta: 10,                             // min distance(px) before a swipe starts
-      preventDefaultTouchmoveEvent: true,    // preventDefault on touchmove, *See Details*
-      trackTouch: true,                      // track touch input
-      trackMouse: true,                      // track mouse input
-      rotationAngle: 0,                      // set a rotation angle
-    };
-
-    
-    const swipe_handlers = useSwipeable({
-      onSwiped: (eventData) => console.log("User Swiped!", eventData),
-      onSwipedLeft: () => swipe_left(),
-      onSwipedRight: () => swipe_right(),
-      ...swipe_config,
-    })
     
     const swipe_right = () =>
     {
@@ -169,7 +154,7 @@ export default function App()
         />
         {connected ?
           // add class 'div_swipe'
-          <div {...swipe_handlers} style={divStyle}>
+          <div style={divStyle}>
             <Canvas linear dpr={dpr} /*add click event to canvas*/ 
               onDoubleClick={(e) => {
                 // if we're clicking on the right side of the screen then swipe right
@@ -203,7 +188,6 @@ export default function App()
               })()}
 
         {/*<DebugQuad tex={waveformTex} />*/}
-          
               <UpdateLoop />
             </Canvas>
           </div>
@@ -212,3 +196,20 @@ export default function App()
       </>
     )
   }
+
+// from https://gist.github.com/whoisryosuke/99f23c9957d90e8cc3eb7689ffa5757c
+  const useMousePosition = () => {
+    const [mousePosition, setMousePosition] = useState({ x: null, y: null });
+  
+    const updateMousePosition = ev => {
+      setMousePosition({ x: ev.clientX / window.innerWidth, y: 1.0 - ev.clientY / window.innerHeight });
+    };
+  
+    useEffect(() => {
+      window.addEventListener("mousemove", updateMousePosition);
+  
+      return () => window.removeEventListener("mousemove", updateMousePosition);
+    }, []);
+  
+    return mousePosition;
+  };

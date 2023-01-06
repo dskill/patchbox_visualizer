@@ -16,17 +16,14 @@ const math = {
   },
 }
 
-function ScopeDistortionEffect({ waveformTex, waveformRms, waveformRmsAccum, oscNetworkBridge, setDpr, setUI, ...global_props })
+function ScopeDistortionEffect({ waveformTex, waveformRms, waveformRmsAccum, oscNetworkBridge, setDpr, setUI, touchPos, ...global_props })
 {
   const ref = useRef()
   const { width, height } = useThree((state) => state.viewport)
-  
-  useControls(
-    {
+  const [, set] = useControls(() => ({
       distortionPreGain: { value: 1, min: 1, max: 200, step: 0.01, onChange: (value) => { oscNetworkBridge.send('distortionPreGain', value) } },
       scope_scale_y: { value: 1.0, min: 0, max: 1, step: 0.01, onChange: (value) => { ref.current.iAmplitude = value } },
-    }
-  )
+  }))
 
   // update the uniforms
   useFrame((state, delta) =>
@@ -36,6 +33,11 @@ function ScopeDistortionEffect({ waveformTex, waveformRms, waveformRmsAccum, osc
     ref.current.iWaveformRmsAccum = waveformRmsAccum
   })
 
+  useEffect(() => 
+  {
+    set( {distortionPreGain: touchPos[1] * 200.0} )
+  }, [touchPos])
+  
   // send OSC messages only on start
   useEffect(() =>
   {
