@@ -27,16 +27,17 @@ export default function App()
   const [waveformRms, setWaveformRms] = useState([0, 0, 0, 0]);
   const [waveformRmsAccum, setWaveformRmsAccum] = useState([0, 0, 0, 0]);
   const [dpr, setDpr] = useState(1.0)
-  const [connected, setConnected] = useState(false)
+  const [connected, setConnected] = useState(true)
   const [waveformTex, setWaveformTex] = useState(null)
   const effectOptions = ["Debug", "Glitch Distortion", "Distortion", "Scope", "Scope Distortion"]
   const [{ x, y }, setXY] = useState({ x: 0, y: 0 })
   
-  // Set the drag hook 
-  const bind = useDrag(({ down, xy: [x, y] }) => {
-    setXY({ x: x / window.innerWidth, y: 1.0 - y / window.innerHeight }),
-    { pointer: {touch: true} }
+  const bind =useDrag(({ down, xy: [x, y] })  => 
+  setXY({ x: x / window.innerWidth, y: 1.0 - y / window.innerHeight }), 
+  {
+    pointer: {touch: true} 
   })
+  
 
   const [{ currentEffect }, setUI] = useControls(() => ({
     currentEffect: {
@@ -160,7 +161,6 @@ export default function App()
         //collapsed // default = false, when true the GUI is collpased
         //hidden={url_param_gui == null} // default = false, when true the GUI is hidden
         />
-        <p>{x} {y}</p>
         {connected ?
           <div  {...bind()} style={divStyle}>
             <Canvas linear dpr={dpr} /*add click event to canvas*/ 
