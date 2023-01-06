@@ -13,7 +13,7 @@ export class OSCNetworkBridge
   queue = [];
 
   constructor(waveformResolution = 512, ip)
-  {
+  {  
     this.waveformArray0.length = waveformResolution
     this.waveformArray1.length = waveformResolution
 
@@ -127,5 +127,9 @@ export class OSCNetworkBridge
       console.log("not connected to osc server");
     }
     */
+  }
+
+  destroy() {
+    this.osc_connection.close();
   }
 }

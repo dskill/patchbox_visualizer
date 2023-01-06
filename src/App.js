@@ -15,7 +15,37 @@ import ScopeEffect from './Effects/ScopeEffect'
 import ScopeDistortionEffect from './Effects/ScopeDistortionEffect.js'
 import GlitchDistortionEffect from './Effects/GlitchDistortionEffect.js'
 
+
+// MUI
+import { IconButton, Button } from '@mui/material';
+import ArrowRightIcon from '@mui/icons-material/ArrowRight';
+import ArrowLeftIcon from '@mui/icons-material/ArrowLeft';
+
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+const theme = createTheme({
+  palette: {
+    primary: {
+      light: '#757ce8',
+      main: '#9b9b9b',
+      dark: '#002884',
+      contrastText: '#fff',
+    },
+    secondary: {
+      light: '#ff7961',
+      main: '#f44336',
+      dark: '#ba000d',
+      contrastText: '#000',
+    },
+  },
+});
+
 let resolution = 512;
+// make sure if we hot reload during development, we don't accidentally make multiple oscNetworkBridge instances
+if (oscNetworkBridge != null)
+{
+  oscNetworkBridge.destroy()  
+}
+
 let oscNetworkBridge = new OSCNetworkBridge(resolution, 'localhost');
 let waveformTexture = new WaveformTexture(resolution);
 
@@ -76,6 +106,11 @@ export default function App()
         transient: false,
         onChange: (value) =>
         {
+          // destroy the existing bridge if there is one
+          if (oscNetworkBridge != null)
+          {
+            oscNetworkBridge.destroy()
+          }
           oscNetworkBridge = new OSCNetworkBridge(resolution, value);
         }
       }
@@ -153,6 +188,7 @@ export default function App()
 
     return (
       <>
+        <ThemeProvider theme={theme}>
         <Leva
         //fill // default = false,  true makes the pane fill the parent dom node it's rendered in
         //flat // default = false,  true removes border radius and shadow
@@ -163,19 +199,16 @@ export default function App()
         />
         {connected ?
           <div  {...bind()} style={divStyle}>
-            <Canvas linear dpr={dpr} /*add click event to canvas*/ 
-              onDoubleClick={(e) => {
-                // if we're clicking on the right side of the screen then swipe right
-                if (e.clientX > window.innerWidth / 2)
-                {
-                  swipe_right()
-                }
-                else
-                {
-                  swipe_left()
-                }
-              }
-            }>
+            
+            <IconButton size="large" variant="outlined" color="primary" sx={{ display: 'grid', width: 200, height: 200, padding: 1, margin: 2, position: 'absolute', alignItems: 'center', justifyContent: 'center', left: -10, bottom: -10, zIndex: 1,opacity: 0.2 }} onClick={swipe_left}>
+                <ArrowLeftIcon sx={{ width: 100, height: 100}}/>
+            </IconButton>
+
+            <IconButton size="large" variant="outlined" color="primary" sx={{ display: 'grid', width: 200, height: 200, padding: 1, margin: 2, position: 'absolute', alignItems: 'center', justifyContent: 'center', right: -10, bottom: -10, zIndex: 1,opacity: 0.2 }} onClick={swipe_right}>
+                <ArrowRightIcon sx={{ width: 100, height: 100}}/>
+            </IconButton>
+
+            <Canvas linear dpr={dpr} /*add click event to canvas*/ >
               {(() =>
               {
                 switch (currentEffect)
@@ -201,7 +234,7 @@ export default function App()
           </div>
           : <h1>Connecting...</h1>
         }
-        
+        </ThemeProvider>
       </>
     )
   }

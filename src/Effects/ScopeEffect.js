@@ -3,6 +3,7 @@ import { useRef, useState, useEffect } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { ScopeMaterial } from './ScopeMaterial'
 import { useControls } from 'leva'
+import { Text } from "@react-three/drei";
 
 // smoothstep function
 // TODO just use a math module
@@ -46,9 +47,8 @@ function ScopeEffect({ waveformTex, waveformRms, waveformRmsAccum, oscNetworkBri
   }, [])  // empty array means effect will only be applied once
 
   return (
+    <>
     <mesh scale={[width, height, 1]}>
-      {console.log("ScopeEffect Rerendered")}
-      {console.log("waveformTex: ", waveformTex)}
       <planeGeometry />
       <scopeMaterial ref={ref}
         key={ScopeMaterial.key}
@@ -56,6 +56,25 @@ function ScopeEffect({ waveformTex, waveformRms, waveformRmsAccum, oscNetworkBri
         iWaveformTexture0={waveformTex}
       />
     </mesh>
+    <Text
+        scale={[2, 2, 2]}
+        position={[-5, 1, 1]}
+        color="gray" // default
+        anchorX="center" // default
+        anchorY="middle" // default
+      >
+        IN
+      </Text>
+      <Text
+        scale={[2, 2, 2]}
+        position={[-5, -1, 1]}
+        color="gray" // default
+        anchorX="center" // default
+        anchorY="middle" // default
+      >
+        OUT
+      </Text>
+    </>
   )
 }
 

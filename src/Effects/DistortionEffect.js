@@ -16,18 +16,15 @@ const math = {
   },
 }
 
-function DistortionEffect({ waveformTex, waveformRms, waveformRmsAccum, oscNetworkBridge, setDpr, setUI, ...global_props })
+function DistortionEffect({ waveformTex, waveformRms, waveformRmsAccum, oscNetworkBridge, setDpr, setUI, touchPos, ...global_props })
 {
   let effectParams0 = [0, 0, 0, 0];
   let effectParams1 = [0, 0, 0, 0];
 
-  useControls(
-    {
-      distortionPreGain: {
-        value: 1, min: 1, max: 200, step: 0.01, onChange: (value) => { oscNetworkBridge.send('distortionPreGain', value) }
-      }
-    }
-  )
+  const [, set] = useControls(() => ({
+    distortionPreGain: { value: 1, min: 1, max: 200, step: 0.01, onChange: (value) => { oscNetworkBridge.send('distortionPreGain', value) } },
+  }))
+
 
 
   const ref = useRef()
@@ -55,6 +52,11 @@ function DistortionEffect({ waveformTex, waveformRms, waveformRmsAccum, oscNetwo
       console.log("error: ", e)
     }
   })
+
+  useEffect(() => 
+  {
+    set( {distortionPreGain: touchPos[1] * 200.0} )
+  }, [touchPos])
 
   // send OSC messages only on start
   useEffect(() =>

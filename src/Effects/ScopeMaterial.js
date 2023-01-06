@@ -51,13 +51,13 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 	float waveform1 = waveform.g;
     vec3 color = vec3(0.0); 
     float pinch = 1.0;
-	float scopeline0 = uvOriginal.y + waveform0 - .6;
+	float scopeline0 = uvOriginal.y + waveform0 - .75;
 	scopeline0 = abs(scopeline0);
 	color.r = 1.0 * pow(smoothstep(0.015,.001, scopeline0),4.);
 	color.g = .7 * pow(smoothstep(0.03,.001, scopeline0),4.);
 	color.b = 0.5 * pow(smoothstep(0.08,.001, scopeline0),4.);
 
-	float scopeline1 = uvOriginal.y + waveform1- .4;
+	float scopeline1 = uvOriginal.y + waveform1- .25;
 	scopeline1 = abs(scopeline1);
 	color.r += 1.1 * pow(smoothstep(0.035,.001, scopeline1),4.);
 	color.g += 0.8 * pow(smoothstep(0.02,.001, scopeline1),4.);

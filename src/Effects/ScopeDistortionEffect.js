@@ -3,6 +3,7 @@ import { useEffect, useRef, useState, useMemo, useLayoutEffect } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { ScopeMaterial } from './ScopeMaterial'
 import { useControls } from 'leva'
+import { Text } from "@react-three/drei";
 
 // smoothstep function
 // TODO just use a math module
@@ -57,6 +58,24 @@ function ScopeDistortionEffect({ waveformTex, waveformRms, waveformRmsAccum, osc
         iWaveformTexture0={waveformTex}
       />
     </mesh>
+    <Text
+        scale={[2, 2, 2]}
+        position={[-5, 1, 1]}
+        color="gray" // default
+        anchorX="center" // default
+        anchorY="middle" // default
+      >
+        IN
+      </Text>
+      <Text
+        scale={[2, 2, 2]}
+        position={[-5, -1, 1]}
+        color="gray" // default
+        anchorX="center" // default
+        anchorY="middle" // default
+      >
+        OUT
+      </Text>
     </>
   )
 }
