@@ -33,8 +33,9 @@ export default function App()
   const [{ x, y }, setXY] = useState({ x: 0, y: 0 })
   
   // Set the drag hook 
-  const bind = useMove(({ down, xy: [x, y] }) => {
-    setXY({ x: x / window.innerWidth, y: 1.0 - y / window.innerHeight })
+  const bind = useDrag(({ down, xy: [x, y] }) => {
+    setXY({ x: x / window.innerWidth, y: 1.0 - y / window.innerHeight }),
+    { pointer: {touch: true} }
   })
 
   const [{ currentEffect }, setUI] = useControls(() => ({
