@@ -86,7 +86,7 @@ function GlitchDistortionEffect({ waveformTex, waveformRms, waveformRmsAccum, os
   const [glitchStrength, setGlitchStrength] = useState(0.0)
   const [{distortionPreGain}, set] = useControls(() => ({
     distortionPreGain: { transient: false, value: 1, min: 1, max: 200, step: 0.01, onChange: (value) => { oscNetworkBridge.send('distortionPreGain', value) } },
-    scope_scale_y: { value: 1.0, min: 0, max: 1, step: 0.01, onChange: (value) => { ref.current.iAmplitude = value } },
+    scope_scale_y: { value: .2, min: 0, max: 1, step: 0.01, onChange: (value) => { ref.current.iAmplitude = value } },
 }))
 
   // update the uniforms
@@ -111,7 +111,7 @@ function GlitchDistortionEffect({ waveformTex, waveformRms, waveformRmsAccum, os
     ref.current.iAmplitude = 1.0;
     setDpr(.2)
     setUI({ downsample: 8 })
-    setUI({ resolution: 128 })
+    setUI({ resolution: 64 })
     
     oscNetworkBridge.send('setEffect', 'scopeDistortion')
   }, [])  // empty array means effect will only be applied once

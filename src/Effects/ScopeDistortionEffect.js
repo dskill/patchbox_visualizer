@@ -22,7 +22,7 @@ function ScopeDistortionEffect({ waveformTex, waveformRms, waveformRmsAccum, osc
   const { width, height } = useThree((state) => state.viewport)
   const [, set] = useControls(() => ({
       distortionPreGain: { value: 1, min: 1, max: 200, step: 0.01, onChange: (value) => { oscNetworkBridge.send('distortionPreGain', value) } },
-      scope_scale_y: { value: 1.0, min: 0, max: 1, step: 0.01, onChange: (value) => { ref.current.iAmplitude = value } },
+      scope_scale_y: { value: 0.5, min: 0, max: 1, step: 0.01, onChange: (value) => { ref.current.iAmplitude = value } },
   }))
 
   // update the uniforms

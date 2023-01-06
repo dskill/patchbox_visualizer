@@ -42,8 +42,7 @@ function FullScreenEffect({ waveformTex, waveformRms, waveformRmsAccum, oscNetwo
     // update the uniforms
     try {
     effectParams0[0] = math.smoothstep(0, 1.0, reverbMix.value);
-    effectParams0[1] = distortionPreGain.value / 200.0;
-    effectParams0[2] = delayMix.value;
+    effectParams0[1] = distortionPreGain.value / 200.0; 
     effectParams0[3] = math.smoothstep(.1, .15, delayTime.value);
     effectParams1[0] = delayFeedback.value;
     ref.current.iEffectParams0 = effectParams0;
