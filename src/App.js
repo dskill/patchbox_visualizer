@@ -3,7 +3,7 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { Leva, useControls } from 'leva'
 //https://github.com/pmndrs/drei/#performance -->
 import { AdaptiveDpr } from '@react-three/drei'
-import { useDrag } from '@use-gesture/react'
+import { useDrag, useMove} from '@use-gesture/react'
 import { useSpring, animated } from '@react-spring/web'
 
 import { OSCNetworkBridge } from './OSCNetworkBridge.js'
@@ -33,7 +33,7 @@ export default function App()
   const [{ x, y }, setXY] = useState({ x: 0, y: 0 })
   
   // Set the drag hook 
-  const bind = useDrag(({ down, xy: [x, y] }) => {
+  const bind = useMove(({ down, xy: [x, y] }) => {
     setXY({ x: x / window.innerWidth, y: 1.0 - y / window.innerHeight })
   })
 
@@ -159,8 +159,8 @@ export default function App()
         //collapsed // default = false, when true the GUI is collpased
         //hidden={url_param_gui == null} // default = false, when true the GUI is hidden
         />
+        <p>{x} {y}</p>
         {connected ?
-          // add class 'div_swipe'
           <div  {...bind()} style={divStyle}>
             <Canvas linear dpr={dpr} /*add click event to canvas*/ 
               onDoubleClick={(e) => {
@@ -200,6 +200,7 @@ export default function App()
           </div>
           : <h1>Connecting...</h1>
         }
+        
       </>
     )
   }
