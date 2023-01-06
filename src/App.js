@@ -3,6 +3,8 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { Leva, useControls } from 'leva'
 //https://github.com/pmndrs/drei/#performance -->
 import { AdaptiveDpr } from '@react-three/drei'
+import { useDrag } from '@use-gesture/react'
+import { useSpring, animated } from '@react-spring/web'
 
 import { OSCNetworkBridge } from './OSCNetworkBridge.js'
 import { WaveformTexture } from './WaveformTexture'
@@ -28,7 +30,12 @@ export default function App()
   const [connected, setConnected] = useState(false)
   const [waveformTex, setWaveformTex] = useState(null)
   const effectOptions = ["Debug", "Glitch Distortion", "Distortion", "Scope", "Scope Distortion"]
-  const { x, y } = useMousePosition();
+  const [{ x, y }, setXY] = useState({ x: 0, y: 0 })
+  
+  // Set the drag hook 
+  const bind = useDrag(({ down, xy: [x, y] }) => {
+    setXY({ x: x / window.innerWidth, y: 1.0 - y / window.innerHeight })
+  })
 
   const [{ currentEffect }, setUI] = useControls(() => ({
     currentEffect: {
@@ -154,7 +161,7 @@ export default function App()
         />
         {connected ?
           // add class 'div_swipe'
-          <div style={divStyle}>
+          <div  {...bind()} style={divStyle}>
             <Canvas linear dpr={dpr} /*add click event to canvas*/ 
               onDoubleClick={(e) => {
                 // if we're clicking on the right side of the screen then swipe right
@@ -196,20 +203,3 @@ export default function App()
       </>
     )
   }
-
-// from https://gist.github.com/whoisryosuke/99f23c9957d90e8cc3eb7689ffa5757c
-  const useMousePosition = () => {
-    const [mousePosition, setMousePosition] = useState({ x: null, y: null });
-  
-    const updateMousePosition = ev => {
-      setMousePosition({ x: ev.clientX / window.innerWidth, y: 1.0 - ev.clientY / window.innerHeight });
-    };
-  
-    useEffect(() => {
-      window.addEventListener("mousemove", updateMousePosition);
-  
-      return () => window.removeEventListener("mousemove", updateMousePosition);
-    }, []);
-  
-    return mousePosition;
-  };
