@@ -15,7 +15,6 @@ import ScopeEffect from './Effects/ScopeEffect'
 import ScopeDistortionEffect from './Effects/ScopeDistortionEffect.js'
 import GlitchDistortionEffect from './Effects/GlitchDistortionEffect.js'
 
-
 // MUI
 import { IconButton, Button } from '@mui/material';
 import ArrowRightIcon from '@mui/icons-material/ArrowRight';
@@ -102,7 +101,7 @@ export default function App()
   {
     useControls({
       server: {
-        value: window.location.hostname,
+        value: 'localhost', //window.location.hostname,
         transient: false,
         onChange: (value) =>
         {
@@ -200,11 +199,11 @@ export default function App()
         {connected ?
           <div  {...bind()} style={divStyle}>
             
-            <IconButton size="large" variant="outlined" color="primary" sx={{ display: 'grid', width: 200, height: 200, padding: 1, margin: 2, position: 'absolute', alignItems: 'center', justifyContent: 'center', left: -10, bottom: -10, zIndex: 1,opacity: 0.2 }} onClick={swipe_left}>
+            <IconButton size="large" variant="outlined" color="primary" sx={{ display: 'grid', width: 200, height: 200, padding: 1, margin: 2, position: 'absolute', alignItems: 'center', justifyContent: 'center', left: -10, bottom: -10, zIndex: 1,opacity: 0.5 }} onClick={swipe_left}>
                 <ArrowLeftIcon sx={{ width: 100, height: 100}}/>
             </IconButton>
 
-            <IconButton size="large" variant="outlined" color="primary" sx={{ display: 'grid', width: 200, height: 200, padding: 1, margin: 2, position: 'absolute', alignItems: 'center', justifyContent: 'center', right: -10, bottom: -10, zIndex: 1,opacity: 0.2 }} onClick={swipe_right}>
+            <IconButton size="large" variant="outlined" color="primary" sx={{ display: 'grid', width: 200, height: 200, padding: 1, margin: 2, position: 'absolute', alignItems: 'center', justifyContent: 'center', right: -10, bottom: -10, zIndex: 1,opacity: 0.5 }} onClick={swipe_right}>
                 <ArrowRightIcon sx={{ width: 100, height: 100}}/>
             </IconButton>
 

@@ -1,7 +1,7 @@
 
 import { useRef, useState, useEffect } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { ScopeMaterial } from './ScopeMaterial'
+import { ScopeMaterial } from './Materials/ScopeMaterial'
 import { useControls } from 'leva'
 import { Text } from "@react-three/drei";
 
@@ -48,15 +48,24 @@ function ScopeEffect({ waveformTex, waveformRms, waveformRmsAccum, oscNetworkBri
 
   return (
     <>
-    <mesh scale={[width, height, 1]}>
-      <planeGeometry />
-      <scopeMaterial ref={ref}
-        key={ScopeMaterial.key}
-        toneMapped={true}
-        iWaveformTexture0={waveformTex}
-      />
-    </mesh>
-    <Text
+      <Text
+        scale={[2, 2, 2]}
+        position={[0, 2.75, 1]}
+        color="gray" // default
+        anchorX="center" // default
+        anchorY="middle" // default
+      > 
+        Scope Bypass
+      </Text>
+      <mesh scale={[width, height, 1]}>
+        <planeGeometry />
+        <scopeMaterial ref={ref}
+          key={ScopeMaterial.key}
+          toneMapped={true}
+          iWaveformTexture0={waveformTex}
+        />
+      </mesh>
+      <Text
         scale={[2, 2, 2]}
         position={[-5, 1, 1]}
         color="gray" // default

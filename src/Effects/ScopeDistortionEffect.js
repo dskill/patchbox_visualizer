@@ -1,7 +1,7 @@
 
 import { useEffect, useRef, useState, useMemo, useLayoutEffect } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { ScopeMaterial } from './ScopeMaterial'
+import { ScopeMaterial } from './Materials/ScopeMaterial'
 import { useControls } from 'leva'
 import { Text } from "@react-three/drei";
 
@@ -50,6 +50,15 @@ function ScopeDistortionEffect({ waveformTex, waveformRms, waveformRmsAccum, osc
 
   return (
     <>
+     <Text
+      scale={[2, 2, 2]}
+      position={[0, 2.75, 1]}
+      color="gray" // default
+      anchorX="center" // default
+      anchorY="middle" // default
+    > 
+      Scope Distortion
+    </Text>
     <mesh scale={[width, height, 1]}>
       <planeGeometry />
       <scopeMaterial ref={ref}

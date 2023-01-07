@@ -1,8 +1,9 @@
 
 import { useRef, useState, useEffect } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { FullScreenMaterial } from './FullScreenMaterial'
+import { FullScreenMaterial } from './Materials/FullScreenMaterial'
 import { useControls } from 'leva'
+import { Text } from "@react-three/drei";
 
 // smoothstep function
 // TODO just use a math module
@@ -64,6 +65,16 @@ function FullScreenEffect({ waveformTex, waveformRms, waveformRmsAccum, oscNetwo
 
 
   return (
+    <>
+    <Text
+      scale={[2, 2, 2]}
+      position={[0, 2.75, 1]}
+      color="gray" // default
+      anchorX="center" // default
+      anchorY="middle" // default
+    > 
+      Debug
+    </Text>
     <mesh scale={[width, height, 1]}>
       <planeGeometry />
       <fullScreenMaterial ref={ref}
@@ -72,6 +83,7 @@ function FullScreenEffect({ waveformTex, waveformRms, waveformRmsAccum, oscNetwo
         iWaveformTexture0={waveformTex}
       />
     </mesh>
+    </>
   )
 }
 

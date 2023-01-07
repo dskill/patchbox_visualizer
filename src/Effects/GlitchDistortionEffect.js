@@ -1,11 +1,12 @@
 
 import { useEffect, useRef, useState, useMemo, useLayoutEffect } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { GlitchDistortionMaterial } from './GlitchDistortionMaterial'
+import { GlitchDistortionMaterial } from './Materials/GlitchDistortionMaterial'
 import { useControls } from 'leva'
 import { AsciiEffect } from 'three-stdlib'
 import { Glitch, EffectComposer } from "@react-three/postprocessing";
 import { GlitchMode } from 'postprocessing'
+import { Text } from "@react-three/drei";
 
 
 function AsciiRenderer({
@@ -109,7 +110,7 @@ function GlitchDistortionEffect({ waveformTex, waveformRms, waveformRmsAccum, os
   useEffect(() =>
   {
     ref.current.iAmplitude = 1.0;
-    setDpr(.2)
+    setDpr(.5)
     setUI({ downsample: 8 })
     setUI({ resolution: 64 })
     
@@ -118,6 +119,16 @@ function GlitchDistortionEffect({ waveformTex, waveformRms, waveformRmsAccum, os
 
   return (
     <>
+    <Text
+      scale={[2, 2, 2]}
+      position={[0, 2.75, 1]}
+      color="gray" // default
+      anchorX="center" // default
+      anchorY="middle" // default
+    > 
+      Glitch Distortion
+    </Text>
+
       <mesh scale={[width, height, 1]}>
         <planeGeometry />
         <glitchDistortionMaterial ref={ref}
