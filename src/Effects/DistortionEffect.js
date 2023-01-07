@@ -15,6 +15,7 @@ const math = {
     // Evaluate polynomial
     return x * x * (3 - 2 * x)
   },
+  lerp: (a, b, t) => a + (b - a) * t,
 }
 
 function DistortionEffect({ waveformTex, waveformRms, waveformRmsAccum, oscNetworkBridge, setDpr, setUI, touchPos, ...global_props })
@@ -24,9 +25,11 @@ function DistortionEffect({ waveformTex, waveformRms, waveformRmsAccum, oscNetwo
 
   const [, set] = useControls(() => ({
     distortionPreGain: { value: 1, min: 1, max: 200, step: 0.01, onChange: (value) => { oscNetworkBridge.send('distortionPreGain', value) } },
+    reverbMix: {  value: 0, min: 0, max: 1, step: 0.01, onChange: (value) => { oscNetworkBridge.send('reverbMix', value) } },
+    delayMix: { value: 0.0, min: 0.0, max: 1.0, step: 0.01, onChange: (value) => { oscNetworkBridge.send('delayMix', value) } },
+    delayTime: {  value: 0.3, min: 0, max: 1, step: 0.01, onChange: (value) => { oscNetworkBridge.send('delayTime', value) } },
+    delayFeedback: { value: .5, min: 0, max: 10, step: 0.01, onChange: (value) => { oscNetworkBridge.send('delayFeedback', value) } },
   }))
-
-
 
   const ref = useRef()
   const { width, height } = useThree((state) => state.viewport)
@@ -54,10 +57,33 @@ function DistortionEffect({ waveformTex, waveformRms, waveformRmsAccum, oscNetwo
     }
   })
 
-  useEffect(() => 
-  {
-    set( {distortionPreGain: touchPos[1] * 200.0} )
-  }, [touchPos])
+  // update params by touch
+  const yparam = {
+    distortionPreGain: 200.0,
+    delayMix: 1.0
+  }
+
+  const xparam = {
+    reverbMix: 1.0,
+  }
+
+  // funky math to update params based on touch
+  useEffect(() => {
+    const updateValues = () => {
+      const center_touch = [touchPos[0] - 0.5, touchPos[1] - 0.5]
+      const dist_from_center = Math.sqrt(center_touch[0] * center_touch[0] + center_touch[1] * center_touch[1])
+      const dist_from_center_smooth = math.smoothstep(0, .5, dist_from_center)
+      Object.keys(xparam).forEach((key) => {
+        const value = xparam[key] * dist_from_center_smooth;
+        set({ [key]: value });
+      });
+      Object.keys(yparam).forEach((key) => {
+        const value = yparam[key] * math.smoothstep(0,.4, Math.abs(center_touch[1]));
+        set({ [key]: value });
+      });
+    };
+    updateValues();
+  }, [touchPos]);
 
   // send OSC messages only on start
   useEffect(() =>
@@ -66,6 +92,8 @@ function DistortionEffect({ waveformTex, waveformRms, waveformRmsAccum, oscNetwo
     // start the effect
     setUI({ downsample: 8 })
     setUI({ resolution: 512 })
+    set({delayTime: .3 })
+    set({delayFeedback: .5 })
     oscNetworkBridge.send('setEffect', 'default')
 
     // set defaults
