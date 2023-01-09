@@ -70,7 +70,8 @@ SynthDef.new(\default, { |out,
 
 	var comb_delay = CombL.ar(sig_distort, 2, delayTime, delayFeedback) ;
 	var distort_delay_mixed = MulAdd( sig_distort, 1.0) + MulAdd(comb_delay, delayMix);
-	var sig_reverb = FreeVerb.ar(distort_delay_mixed, reverbMix, 0.9, 0.5, 2.0);
+	var wah = RLPF.ar(distort_delay_mixed, LinExp.kr(LFNoise1.kr(0.5), -1, 1, 200, 1000),0.1);
+	var sig_reverb = FreeVerb.ar(wah, reverbMix, 0.9, 0.5, 2.0);
 	var final_sig = sig_reverb;
 
 	// MACHINERY FOR SAMPLING THE SIGNAL
@@ -164,7 +165,6 @@ SynthDef.new(\wahdelay, { arg out=0, maxdtime=0.2, dtime=0.2, decay=2, gate=1, w
 		6.do {
 			final = AllpassN.ar(final, 0.040, [0.040.rand,0.040.rand], 2)
 		};
-
 		// MACHINERY FOR SAMPLING THE SIGNAL
 		phase = Phasor.ar(0, 1, 0, chunkSize);
 		trig = HPZ1.ar(phase) < 0;

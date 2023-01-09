@@ -13,6 +13,8 @@ import DistortionEffect from './Effects/DistortionEffect'
 import ScopeEffect from './Effects/ScopeEffect'
 import ScopeDistortionEffect from './Effects/ScopeDistortionEffect.js'
 import GlitchDistortionEffect from './Effects/GlitchDistortionEffect.js'
+import PitchFollowEffect from './Effects/PitchFollowEffect.js'
+import WahDelayEffect from './Effects/WahDelayEffect.js'
 
 // MUI
 import { IconButton, Button } from '@mui/material';
@@ -57,7 +59,7 @@ export default function App()
   const [dpr, setDpr] = useState(1.0)
   const [connected, setConnected] = useState(true)
   const [waveformTex, setWaveformTex] = useState(null)
-  const effectOptions = ["Glitch Distortion", "Distortion", "Scope", "Scope Distortion"]
+  const effectOptions = ["Glitch Distortion", "Distortion", "Scope", "Scope Distortion", "Pitch Follow", "Wah Delay"]
   const [{ x, y }, setXY] = useState({ x: 0, y: 0 })
   
   const bind =useDrag(({ down, xy: [x, y] })  => 
@@ -219,6 +221,10 @@ export default function App()
                     return <ScopeDistortionEffect {...props} />
                   case 'Glitch Distortion':
                     return <GlitchDistortionEffect {...props} />
+                  case 'Wah Delay':
+                    return <WahDelayEffect {...props} />
+                  case 'Pitch Follow':
+                    return <PitchFollowEffect {...props} />
                   default:
                     return null
                 }

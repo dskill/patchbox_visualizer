@@ -138,9 +138,10 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 	//ring -= .5;
 	ring = pow(ring, 1.2);
 	
-	color.r = 1.0 * pow(smoothstep(0.15*pinch,.001*pinch, ring),4.);
-	color.g = .7 * pow(smoothstep(0.3*pinch,.001*pinch, ring),4.);
-	color.b = 0.5 * pow(smoothstep(0.8*pinch,.001*pinch, ring),4.);
+	vec3 ring_color_1 = hsv2rgb_smooth(vec3(thetaUV +iWaveformRmsAccum.r, 1.0, 1.0));
+	color.r = ring_color_1.r * pow(smoothstep(0.15*pinch,.001*pinch, ring),4.);
+	color.g = ring_color_1.g * pow(smoothstep(0.3*pinch,.001*pinch, ring),4.);
+	color.b = ring_color_1.b * pow(smoothstep(0.8*pinch,.001*pinch, ring),4.);
 
 	float ring2 = sdEffectBlend(uvCentered, pinch, waveform1);
 	ring2 += .5;
@@ -149,23 +150,20 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 	ring2 = abs( sin(ring2*2.0 - abs(iWaveformRmsAccum.g)*.2));
 	//ring2 = pow(.5-ring2, 1.2);
 
-	color.r += 1.0 * pow(smoothstep(0.25*pinch,.001*pinch, ring2),4.);
-	color.g += .7 * pow(smoothstep(0.1*pinch,.001*pinch, ring2),4.);
-	color.b += 0.2 * pow(smoothstep(0.8*pinch,.001*pinch, ring2),4.); 
+	vec3 ring_color_2= hsv2rgb_smooth(vec3(thetaUV +iWaveformRmsAccum.g, 1.0, 1.0));
+	color.r += ring_color_2.r * pow(smoothstep(0.25*pinch,.001*pinch, ring2),4.);
+	color.g += ring_color_2.g * pow(smoothstep(0.1*pinch,.001*pinch, ring2),4.);
+	color.b += ring_color_2.b * pow(smoothstep(0.8*pinch,.001*pinch, ring2),4.); 
 
-	float ring3 = sdEffectBlend(uvCentered, 0.0, 0.0);
-	color.r += 0.13 * pow(smoothstep(0.1,.001, ring3),1.);
-	color.g += 0.0 * pow(smoothstep(0.1,.001, ring3),1.);
-	color.b += .5 * pow(smoothstep(1.6,.001, ring3),1.);
 
-	//color.r *= .4 + iEffectParams0.x;
-	//color.g *= .4 + iEffectParams0.y;
-	//color.b *= .4 + iEffectParams0.z;
-	
+	float ring3 = 1.0;
+	vec3 ring_color_3 = hsv2rgb_smooth(vec3(iWaveformRmsAccum.g*.025, 1.0, iWaveformRms.g));
+	float dist = smoothstep(2.0,.0, length(uvCentered));
+	color.r += ring_color_3.r * dist;
+	color.g += ring_color_3.g * dist;
+	color.b += ring_color_3.b * dist;
+
 	fragColor = vec4(color, 1.0);  
-	//fragColor.x = uvOriginal.x;
-	//fragColor.y = uvOriginal.y;
-	//fragColor.z = 0.0;
 
   #include <tonemapping_fragment>
   #include <encodings_fragment>
