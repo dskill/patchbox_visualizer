@@ -105,19 +105,19 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 	vec2 uvCentered = -1.0 + 2.0 * uvOriginal;
 	// pinch the uv's a bit to make up for the HD aspect ratio (yes, hack)
 	uvCentered.x *= (16.0/9.0);
-	//float r = length(uvOriginal);
-	//float theta = atan(uvCentered.y, uvCentered.x);
+	float r = length(uvOriginal);
+	float theta = atan(uvCentered.y, uvCentered.x);
 	// grab waveform
 	// make uvs that tile twice around the circle
 	//theta += iWaveformRmsAccum.g;
-	//theta = mod(theta, 3.14159*2.0);
-	//float thetaUV = (theta +  3.14159) / (1.0 * 3.14159);
-	//thetaUV = mod(thetaUV, 1.0);
-//	thetaUV *= 2.0;
+	theta = mod(theta, 3.14159*2.0);
+	float thetaUV = (theta +  3.14159) / (1.0 * 3.14159);
+	thetaUV = mod(thetaUV, 1.0);
+	//thetaUV *= 2.0;
 	//if (thetaUV > 1.0) thetaUV = 1.0 - thetaUV;
 
 	//vec2 waveform = -texture2D( iWaveformTexture0, vec2(waveformU,0)).rg;	
-	vec2 waveform = -texture2D( iWaveformTexture0, vec2(uvOriginal.x,0)).rg;	
+	vec2 waveform = -texture2D( iWaveformTexture0, vec2(thetaUV,0)).rg * .1;	
 
 	float waveform0 = waveform.r;
 	float waveform1 = waveform.g;
@@ -134,7 +134,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 	float ring = sdEffectBlend(uvCentered, pinch, waveform0);
 	ring -= .5;
 	ring = abs(ring);
-	//ring = abs( sin(ring*2.0 - iWaveformRmsAccum.r*.1));
+	ring = abs( sin(ring*2.0 - iWaveformRmsAccum.r*.1));
 	//ring -= .5;
 	ring = pow(ring, 1.2);
 	
@@ -146,7 +146,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
 	ring2 += .5;
 	
 	ring2 = abs(ring2);
-	//ring2 = abs( sin(ring2*2.0 - abs(iWaveformRmsAccum.g)*.2));
+	ring2 = abs( sin(ring2*2.0 - abs(iWaveformRmsAccum.g)*.2));
 	//ring2 = pow(.5-ring2, 1.2);
 
 	color.r += 1.0 * pow(smoothstep(0.25*pinch,.001*pinch, ring2),4.);
