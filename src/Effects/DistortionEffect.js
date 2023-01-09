@@ -46,9 +46,9 @@ function DistortionEffect({ waveformTex, waveformRms, waveformRmsAccum, oscNetwo
     {
       effectParams0[0] = 0
       effectParams0[1] = 0
-      effectParams0[2] = 0
+      effectParams0[2] = reverbMix.value
       effectParams0[3] = distortionPreGain.value / 200.0
-      effectParams1[0] = 0
+      effectParams1[0] = delayMix.value
       ref.current.iEffectParams0 = effectParams0
       ref.current.iEffectParams1 = effectParams1
     } catch (e)
@@ -58,12 +58,11 @@ function DistortionEffect({ waveformTex, waveformRms, waveformRmsAccum, oscNetwo
   })
 
   // update params by touch
-  const yparam = {
+  const param_preset_a = {
     distortionPreGain: 200.0,
     delayMix: 1.0
   }
-
-  const xparam = {
+  const param_preset_b = {
     reverbMix: 1.0,
   }
 
@@ -73,12 +72,12 @@ function DistortionEffect({ waveformTex, waveformRms, waveformRmsAccum, oscNetwo
       const center_touch = [touchPos[0] - 0.5, touchPos[1] - 0.5]
       const dist_from_center = Math.sqrt(center_touch[0] * center_touch[0] + center_touch[1] * center_touch[1])
       const dist_from_center_smooth = math.smoothstep(0, .5, dist_from_center)
-      Object.keys(xparam).forEach((key) => {
-        const value = xparam[key] * dist_from_center_smooth;
+      Object.keys(param_preset_b).forEach((key) => {
+        const value = param_preset_b[key] * dist_from_center_smooth;
         set({ [key]: value });
       });
-      Object.keys(yparam).forEach((key) => {
-        const value = yparam[key] * math.smoothstep(0,.4, Math.abs(center_touch[1]));
+      Object.keys(param_preset_a).forEach((key) => {
+        const value = param_preset_a[key] * math.smoothstep(0,.4, Math.abs(center_touch[1]));
         set({ [key]: value });
       });
     };
@@ -113,7 +112,7 @@ function DistortionEffect({ waveformTex, waveformRms, waveformRmsAccum, oscNetwo
       anchorX="center" // default
       anchorY="middle" // default
     > 
-      Distortion
+      Distortion + Reverb + Delay
     </Text>
     <mesh scale={[width, height, 1]}>
       <planeGeometry />

@@ -253,3 +253,25 @@ synth.onFree {
 	});
 	*/
 
+// guitar tuner
+/*
+
+(
+        SynthDef("pitchFollow2", { |out|
+            var in, amp, freq, hasFreq, sound;
+            in = Mix.new(SoundIn.ar([0, 1]));
+            amp = Amplitude.kr(in, 0.05, 0.05);
+            # freq, hasFreq = Pitch.kr(in, execFreq: 1000.0, ampThreshold: 0.01, median: 7, minFreq: 70, maxFreq:500, maxBinsPerOctave: 64);
+            sound = CombC.ar(LPF.ar(in, 1000), 0.1, (2 * freq + 10).reciprocal, -6).distort * 0.05;
+            6.do({
+                sound = AllpassN.ar(sound, 0.040, [0.040.rand, 0.040.rand], 2)
+            });
+	freq.poll;
+	hasFreq.poll;
+	out = in;
+	sound = in;
+            Out.ar(out, sound);
+        }).play(s);
+)
+*/
+

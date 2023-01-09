@@ -9,7 +9,6 @@ import { useSpring, animated } from '@react-spring/web'
 import { OSCNetworkBridge } from './OSCNetworkBridge.js'
 import { WaveformTexture } from './WaveformTexture'
 
-import FullScreenEffect from './Effects/FullScreenEffect'
 import DistortionEffect from './Effects/DistortionEffect'
 import ScopeEffect from './Effects/ScopeEffect'
 import ScopeDistortionEffect from './Effects/ScopeDistortionEffect.js'
@@ -58,7 +57,7 @@ export default function App()
   const [dpr, setDpr] = useState(1.0)
   const [connected, setConnected] = useState(true)
   const [waveformTex, setWaveformTex] = useState(null)
-  const effectOptions = ["Debug", "Glitch Distortion", "Distortion", "Scope", "Scope Distortion"]
+  const effectOptions = ["Glitch Distortion", "Distortion", "Scope", "Scope Distortion"]
   const [{ x, y }, setXY] = useState({ x: 0, y: 0 })
   
   const bind =useDrag(({ down, xy: [x, y] })  => 
@@ -70,7 +69,7 @@ export default function App()
 
   const [{ currentEffect }, setUI] = useControls(() => ({
     currentEffect: {
-      value: 'Debug',
+      value: 'Distortion',
       transient: false,
       options: effectOptions,
     },
@@ -200,11 +199,11 @@ export default function App()
           <div  {...bind()} style={divStyle}>
             
             <IconButton size="large" variant="outlined" color="primary" sx={{ display: 'grid', width: 200, height: 200, padding: 1, margin: 2, position: 'absolute', alignItems: 'center', justifyContent: 'center', left: -10, bottom: -10, zIndex: 1,opacity: 0.5 }} onClick={swipe_left}>
-                <ArrowLeftIcon sx={{ width: 100, height: 100}}/>
+                <ArrowLeftIcon sx={{ width: 150, height: 150}}/>
             </IconButton>
 
             <IconButton size="large" variant="outlined" color="primary" sx={{ display: 'grid', width: 200, height: 200, padding: 1, margin: 2, position: 'absolute', alignItems: 'center', justifyContent: 'center', right: -10, bottom: -10, zIndex: 1,opacity: 0.5 }} onClick={swipe_right}>
-                <ArrowRightIcon sx={{ width: 100, height: 100}}/>
+                <ArrowRightIcon sx={{ width: 150, height: 150}}/>
             </IconButton>
 
             <Canvas linear dpr={dpr} /*add click event to canvas*/ >
@@ -212,8 +211,6 @@ export default function App()
               {
                 switch (currentEffect)
                 {
-                  case 'Debug':
-                    return <FullScreenEffect {...props} />
                   case 'Distortion':
                     return <DistortionEffect {...props} />
                   case 'Scope':
