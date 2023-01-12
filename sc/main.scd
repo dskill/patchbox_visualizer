@@ -3,14 +3,13 @@
 NetAddr.langPort.postln;
 
 
-/*
+
 // for windows (focusrite)
 //ServerOptions.devices; // all devices
 //ServerOptions.outDevices; // all devices
-o = Server.default.options;
-o.inDevice_(ServerOptions.devices[20]);
-o.outDevice_(ServerOptions.devices[20]);
-*/
+//o = Server.default.options;
+//o.inDevice_(ServerOptions.devices[20]);
+//o.outDevice_(ServerOptions.devices[20]);
 
 s.boot;
 (
@@ -71,7 +70,8 @@ SynthDef.new(\default, { |out,
 
 	var comb_delay = CombL.ar(sig_distort, 2, delayTime, delayFeedback) ;
 	var distort_delay_mixed = MulAdd( sig_distort, 1.0) + MulAdd(comb_delay, delayMix);
-	var sig_reverb = FreeVerb.ar(distort_delay_mixed, reverbMix, 0.9, 0.5, 2.0);
+	var wah = RLPF.ar(distort_delay_mixed, LinExp.kr(LFNoise1.kr(0.5), -1, 1, 200, 1000),0.1);
+	var sig_reverb = FreeVerb.ar(wah, reverbMix, 0.9, 0.5, 2.0);
 	var final_sig = sig_reverb;
 
 	// MACHINERY FOR SAMPLING THE SIGNAL
@@ -132,6 +132,52 @@ SynthDef.new(\scopeDistortion, { |out, distortionPreGain = 1.0|
 	SendReply.ar(fixed_timing_reset_trig, '/buffer_refresh', partition);
 	Out.ar(out, sig_distort);
 	}).add;
+
+SynthDef.new(\wahdelay, { arg out=0, maxdtime=0.2, dtime=0.2, decay=2, gate=1, wah_noise=0.4, wah_amp=10.0, wah_freq_min=200, wah_freq_max=1000;
+	var in = SoundIn.ar(0);
+    var env = Linen.kr(gate, 0.05, 1, 0.1, 2);
+
+	var rmsSize=2048*64;
+	var rms = (RunningSum.ar(in.squared, rmsSize) / rmsSize).sqrt;
+	var wah = RLPF.ar(in, LinExp.kr(LFNoise1.kr(wah_noise+rms*wah_amp), -1, 1, wah_freq_min, wah_freq_max),0.1);
+	var echo = CombL.ar(in * env, maxdtime, dtime, decay, 1, wah).softclip * 0.4;
+	var final = wah + echo;
+
+	// MACHINERY FOR SAMPLING THE SIGNAL
+	var phase = Phasor.ar(0, 1, 0, chunkSize);
+	var trig = HPZ1.ar(phase) < 0;
+	var partition = PulseCount.ar(trig) % numChunks;
+	var fixed_timing_reset_trig = Impulse.ar(30);
+	// write to buffers that will contain the waveform data we send via OSC
+	BufWr.ar(in, relay_buffer0, phase + (chunkSize * partition));
+	BufWr.ar(final, relay_buffer1, phase + (chunkSize * partition));
+	SendReply.ar(fixed_timing_reset_trig, '/buffer_refresh', partition);
+	Out.ar(out, final)
+}).add;
+
+ SynthDef.new(\pitchfollow, { |out|
+		var final, freq, hasFreq, phase, trig, partition, fixed_timing_reset_trig;
+		var in = Mix.new(SoundIn.ar([0, 1]));
+		var amp = Amplitude.kr(in, 0.05, 0.05);
+		# freq, hasFreq = Pitch.kr(in, ampThreshold: 0.02, median: 7);
+		//freq = Lag.kr(freq.cpsmidi.round(1).midicps, 0.05);
+		final = Mix.new(VarSaw.ar(freq * [0.5, 1, 2], 0, LFNoise1.kr(0.3, 0.1, 0.1), amp));
+		6.do {
+			final = AllpassN.ar(final, 0.040, [0.040.rand,0.040.rand], 2)
+		};
+		// MACHINERY FOR SAMPLING THE SIGNAL
+		phase = Phasor.ar(0, 1, 0, chunkSize);
+		trig = HPZ1.ar(phase) < 0;
+		partition = PulseCount.ar(trig) % numChunks;
+		fixed_timing_reset_trig = Impulse.ar(30);
+		// write to buffers that will contain the waveform data we send via OSC
+		BufWr.ar(in, relay_buffer0, phase + (chunkSize * partition));
+		BufWr.ar(final, relay_buffer1, phase + (chunkSize * partition));
+		SendReply.ar(fixed_timing_reset_trig, '/buffer_refresh', partition);
+
+		Out.ar(out, final)
+}).add;
+
 
 OSCdef(\k, { |msg|
 	// the partition to retrieve is the one BEFORE the latest transition point
@@ -253,4 +299,26 @@ synth.onFree {
 		~o.sendMsg(\waveform1, *(data.as(Array)));
 	});
 	*/
+
+// guitar tuner
+/*
+
+(
+        SynthDef("pitchFollow2", { |out|
+            var in, amp, freq, hasFreq, sound;
+            in = Mix.new(SoundIn.ar([0, 1]));
+            amp = Amplitude.kr(in, 0.05, 0.05);
+            # freq, hasFreq = Pitch.kr(in, execFreq: 1000.0, ampThreshold: 0.01, median: 7, minFreq: 70, maxFreq:500, maxBinsPerOctave: 64);
+            sound = CombC.ar(LPF.ar(in, 1000), 0.1, (2 * freq + 10).reciprocal, -6).distort * 0.05;
+            6.do({
+                sound = AllpassN.ar(sound, 0.040, [0.040.rand, 0.040.rand], 2)
+            });
+	freq.poll;
+	hasFreq.poll;
+	out = in;
+	sound = in;
+            Out.ar(out, sound);
+        }).play(s);
+)
+*/
 

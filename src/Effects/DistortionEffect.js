@@ -1,8 +1,9 @@
 
 import { useRef, useState, useEffect } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { FullScreenMaterial } from './FullScreenMaterial'
+import { FullScreenMaterial } from './Materials/FullScreenMaterial'
 import { useControls } from 'leva'
+import { Text } from "@react-three/drei";
 
 // smoothstep function
 // TODO just use a math module
@@ -14,32 +15,20 @@ const math = {
     // Evaluate polynomial
     return x * x * (3 - 2 * x)
   },
+  lerp: (a, b, t) => a + (b - a) * t,
 }
 
-function DistortionEffect({ waveformTexture, waveformRms, waveformRmsAccum, oscNetworkBridge, setDpr, ...global_props })
+function DistortionEffect({ waveformTex, waveformRms, waveformRmsAccum, oscNetworkBridge, setDpr, setUI, touchPos, ...global_props })
 {
   let effectParams0 = [0, 0, 0, 0];
   let effectParams1 = [0, 0, 0, 0];
 
   const [, set] = useControls(() => ({
-    resolution: {
-      value: 1024,
-      options: [32, 64, 128, 256, 512, 1024, 2048, 4096],
-      onChange: (value) =>
-      {
-        oscNetworkBridge.setResolution(value)
-        waveformTexture.setResolution(value)
-      }
-    },
-    downsample: {
-      value: 8,
-      options: [1, 2, 4, 8, 16, 32, 64, 128, 256],
-      onChange: (value) =>
-      {
-        oscNetworkBridge.send("chunkDownsample", value)
-      }
-    },
     distortionPreGain: { value: 1, min: 1, max: 200, step: 0.01, onChange: (value) => { oscNetworkBridge.send('distortionPreGain', value) } },
+    reverbMix: {  value: 0, min: 0, max: 1, step: 0.01, onChange: (value) => { oscNetworkBridge.send('reverbMix', value) } },
+    delayMix: { value: 0.0, min: 0.0, max: 1.0, step: 0.01, onChange: (value) => { oscNetworkBridge.send('delayMix', value) } },
+    delayTime: {  value: 0.3, min: 0, max: 1, step: 0.01, onChange: (value) => { oscNetworkBridge.send('delayTime', value) } },
+    delayFeedback: { value: .5, min: 0, max: 10, step: 0.01, onChange: (value) => { oscNetworkBridge.send('delayFeedback', value) } },
   }))
 
   const ref = useRef()
@@ -53,26 +42,57 @@ function DistortionEffect({ waveformTexture, waveformRms, waveformRmsAccum, oscN
     ref.current.iWaveformRmsAccum = waveformRmsAccum
 
     // update the uniforms
-    try {
-    effectParams0[0] = 0
-    effectParams0[1] = 0
-    effectParams0[2] = 0
-    effectParams0[3] = distortionPreGain.value / 200.0
-    effectParams1[0] = 0
-    ref.current.iEffectParams0 = effectParams0
-    ref.current.iEffectParams1 = effectParams1
-    } catch (e) {
+    try
+    {
+      effectParams0[0] = 0
+      effectParams0[1] = 0
+      effectParams0[2] = reverbMix.value
+      effectParams0[3] = distortionPreGain.value / 200.0
+      effectParams1[0] = delayMix.value
+      ref.current.iEffectParams0 = effectParams0
+      ref.current.iEffectParams1 = effectParams1
+    } catch (e)
+    {
       console.log("error: ", e)
     }
   })
+
+  // update params by touch
+  const param_preset_a = {
+    distortionPreGain: 200.0,
+    delayMix: 1.0
+  }
+  const param_preset_b = {
+    reverbMix: 1.0,
+  }
+
+  // funky math to update params based on touch
+  useEffect(() => {
+    const updateValues = () => {
+      const center_touch = [touchPos[0] - 0.5, touchPos[1] - 0.5]
+      const dist_from_center = Math.sqrt(center_touch[0] * center_touch[0] + center_touch[1] * center_touch[1])
+      const dist_from_center_smooth = math.smoothstep(0, .5, dist_from_center)
+      Object.keys(param_preset_b).forEach((key) => {
+        const value = param_preset_b[key] * dist_from_center_smooth;
+        set({ [key]: value });
+      });
+      Object.keys(param_preset_a).forEach((key) => {
+        const value = param_preset_a[key] * math.smoothstep(0,.4, Math.abs(center_touch[1]));
+        set({ [key]: value });
+      });
+    };
+    updateValues();
+  }, [touchPos]);
 
   // send OSC messages only on start
   useEffect(() =>
   {
     setDpr(1)
     // start the effect
-    set({ downsample: 8 })
-    set({ resolution: 512 })
+    setUI({ downsample: 8 })
+    setUI({ resolution: 512 })
+    set({delayTime: .3 })
+    set({delayFeedback: .5 })
     oscNetworkBridge.send('setEffect', 'default')
 
     // set defaults
@@ -84,14 +104,25 @@ function DistortionEffect({ waveformTexture, waveformRms, waveformRmsAccum, oscN
 
 
   return (
+    <>
+    <Text
+      scale={[2, 2, 2]}
+      position={[0, 2.75, 1]}
+      color="gray" // default
+      anchorX="center" // default
+      anchorY="middle" // default
+    > 
+      Distortion + Reverb + Delay
+    </Text>
     <mesh scale={[width, height, 1]}>
       <planeGeometry />
       <fullScreenMaterial ref={ref}
         key={FullScreenMaterial.key}
         toneMapped={true}
-        iWaveformTexture0={waveformTexture.texture}
+        iWaveformTexture0={waveformTex}
       />
     </mesh>
+    </>
   )
 }
 

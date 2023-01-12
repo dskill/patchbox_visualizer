@@ -1,8 +1,9 @@
 
 import { useEffect, useRef, useState, useMemo, useLayoutEffect } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { ScopeMaterial } from './ScopeMaterial'
+import { ScopeMaterial } from './Materials/ScopeMaterial'
 import { useControls } from 'leva'
+import { Text } from "@react-three/drei";
 
 // smoothstep function
 // TODO just use a math module
@@ -16,32 +17,13 @@ const math = {
   },
 }
 
-function ScopeDistortionEffect({ waveformTexture, waveformRms, waveformRmsAccum, oscNetworkBridge, setDpr, ...global_props })
+function ScopeDistortionEffect({ waveformTex, waveformRms, waveformRmsAccum, oscNetworkBridge, setDpr, setUI, touchPos, ...global_props })
 {
   const ref = useRef()
   const { width, height } = useThree((state) => state.viewport)
-
-  // use controls with leva. Add amplitude float
-  const [props, set] = useControls(() => ({
-    resolution: {
-      value: 256,
-      options: [32, 64, 128, 256, 512, 1024, 2048, 4096],
-      onChange: (value) =>
-      {
-        oscNetworkBridge.setResolution(value)
-        waveformTexture.setResolution(value)
-      }
-    },
-    downsample: {
-      value: 4,
-      options: [1, 2, 4, 8, 16, 32, 64, 128, 256],
-      onChange: (value) =>
-      {
-        oscNetworkBridge.send("chunkDownsample", value)
-      }
-    },
-    distortionPreGain: { value: 1, min: 1, max: 200, step: 0.01, onChange: (value) => { oscNetworkBridge.send('distortionPreGain', value) }, transient: false },
-    scope_scale_y: { value: 1.0, min: 0, max: 1, step: 0.01, onChange: (value) => { ref.current.iAmplitude = value }, transient: false },
+  const [, set] = useControls(() => ({
+      distortionPreGain: { value: 1, min: 1, max: 200, step: 0.01, onChange: (value) => { oscNetworkBridge.send('distortionPreGain', value) } },
+      scope_scale_y: { value: 0.5, min: 0, max: 1, step: 0.01, onChange: (value) => { ref.current.iAmplitude = value } },
   }))
 
   // update the uniforms
@@ -52,26 +34,57 @@ function ScopeDistortionEffect({ waveformTexture, waveformRms, waveformRmsAccum,
     ref.current.iWaveformRmsAccum = waveformRmsAccum
   })
 
+  useEffect(() => 
+  {
+    set( {distortionPreGain: touchPos[1] * 200.0} )
+  }, [touchPos])
+  
   // send OSC messages only on start
   useEffect(() =>
   {
     setDpr(1)
-    set({ downsample: 4 })
-    set({ resolution: 256 })
-    set({ distortionPreGain: 1 })
+    setUI({ downsample: 4 })
+    setUI({ resolution: 256 })
     oscNetworkBridge.send('setEffect', 'scopeDistortion')
   }, [])  // empty array means effect will only be applied once
 
   return (
     <>
+     <Text
+      scale={[2, 2, 2]}
+      position={[0, 2.75, 1]}
+      color="gray" // default
+      anchorX="center" // default
+      anchorY="middle" // default
+    > 
+      Scope Distortion
+    </Text>
     <mesh scale={[width, height, 1]}>
       <planeGeometry />
       <scopeMaterial ref={ref}
         key={ScopeMaterial.key}
         toneMapped={true}
-        iWaveformTexture0={waveformTexture.texture}
+        iWaveformTexture0={waveformTex}
       />
     </mesh>
+    <Text
+        scale={[2, 2, 2]}
+        position={[-5, 1, 1]}
+        color="gray" // default
+        anchorX="center" // default
+        anchorY="middle" // default
+      >
+        IN
+      </Text>
+      <Text
+        scale={[2, 2, 2]}
+        position={[-5, -1, 1]}
+        color="gray" // default
+        anchorX="center" // default
+        anchorY="middle" // default
+      >
+        OUT
+      </Text>
     </>
   )
 }

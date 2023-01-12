@@ -12,9 +12,8 @@ echo "Starting Patchbox Visualizer..." > /home/patch/logs/pv_startup.log
 MY_IP = 'localhost'
 
 xset s noblank
-xset s off
+#xset s off
 xset -dpms
-
 # unclutter -idle 0.1 -root &
 
 sed -i 's/"exited_cleanly":false/"exited_cleanly":true/' /home/$USER/.config/chromium/Default/Preferences

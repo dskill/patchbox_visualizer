@@ -6,10 +6,10 @@ Runs on desktop (mac/linux) but designed for patchbox OS on Raspberry PI.
 `npm install` 
 
 ## run with hot reloading
-`npx canvas-sketch-cli --hot <your_sketch_here>.js`
+`npm run start`
 
 ## build static site
-`canvas-sketch <your_sketch_here> --name index --build --inline`
+`npm run build`
 
 ## run server
 `node server.js`
@@ -20,6 +20,9 @@ files are in /sc
 
 ## kiosk.sh
 `sh kiosk.sh` to startup chrome full screen kiosk mode
+
+## kill-processes.sh
+`sh kill-processes.sh` to nuke super collider and the node server
 
 ## Patchbox
 `patchbox` to enter patchbox config
