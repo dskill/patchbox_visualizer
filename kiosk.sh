@@ -9,7 +9,7 @@ echo "Starting Patchbox Visualizer..." > /home/patch/logs/pv_startup.log
 #  echo "Detected IP: $MY_IP" >> /home/patch/logs/pv_startup.log
 #  sleep 1
 #done
-MY_IP = 'localhost'
+#MY_IP = 'localhost'
 
 xset s noblank
 #xset s off
@@ -27,4 +27,4 @@ npm install # hacky way to make sure we have the latest dependencies
 node /home/patch/src/patchbox_visualizer/server.js &> /home/patch/logs/server.log & # node server and OSC bridge
 sclang /home/patch/src/patchbox_visualizer/sc/main.scd &> /home/patch/logs/supercollider.log & # super collider
 #/usr/bin/chromium-browser --noerrdialogs --disable-cursor-lock-for-test --disable-infobars --kiosk http://$MY_IP:3000 # web broweser
-/usr/bin/chromium-browser --noerrdialogs --disable-cursor-lock-for-test --disable-infobars --kiosk "http://$MY_IP:3000/?gui&init_with_precip&allow_touch"
+/usr/bin/chromium-browser --noerrdialogs --disable-cursor-lock-for-test --disable-infobars --kiosk "http://localhost:3000/"
