@@ -12,7 +12,7 @@ echo "Starting Patchbox Visualizer..." > /home/patch/logs/pv_startup.log
 #MY_IP = 'localhost'
 
 # wait for node
-while ! pgrep -x "node" > /dev/null
+while [ -z "$(node -v 2>/dev/null)" ]
 do
   sleep 1
 done
