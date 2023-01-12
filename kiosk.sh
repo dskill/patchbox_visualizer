@@ -14,7 +14,7 @@ echo "Starting Patchbox Visualizer..." > /home/patch/logs/pv_startup.log
 # wait for node
 while [ -z "$(node -v 2>/dev/null)" ]
 do
-  echo "waiting for node..." > /home/patch/logs/pv_startup.log
+  echo "waiting for node..." >> /home/patch/logs/pv_startup.log
   sleep 1
 done
 
