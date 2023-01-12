@@ -11,6 +11,14 @@ echo "Starting Patchbox Visualizer..." > /home/patch/logs/pv_startup.log
 #done
 #MY_IP = 'localhost'
 
+# wait for node
+while ! pgrep -x "node" > /dev/null
+do
+  sleep 1
+done
+
+echo "Node.js version: $(node -v)" >> /home/patch/logs/pv_startup.log
+
 xset s noblank
 #xset s off
 xset -dpms
