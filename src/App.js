@@ -14,6 +14,7 @@ import ScopeEffect from './Effects/ScopeEffect'
 import ScopeDistortionEffect from './Effects/ScopeDistortionEffect.js'
 import GlitchDistortionEffect from './Effects/GlitchDistortionEffect.js'
 import PitchFollowEffect from './Effects/PitchFollowEffect.js'
+import PitchFollowLissajousEffect from './Effects/PitchFollowLissajousEffect.js'
 import WahDelayEffect from './Effects/WahDelayEffect.js'
 
 // MUI
@@ -56,6 +57,9 @@ export default function App()
   let url_param_allow_server = searchParams.get('allow_server')
   const [waveformRms, setWaveformRms] = useState([0, 0, 0, 0]);
   const [waveformRmsAccum, setWaveformRmsAccum] = useState([0, 0, 0, 0]);
+  const [waveform0, setWavefrom0] = useState([]);
+  const [waveform1, setWavefrom1] = useState([]);
+  
   const [dpr, setDpr] = useState(1.0)
   const [connected, setConnected] = useState(true)
   const [waveformTex, setWaveformTex] = useState(null)
@@ -128,6 +132,8 @@ export default function App()
   props.waveformTex = waveformTex
   props.effectOptions = effectOptions
   props.touchPos = [x, y]
+  props.waveform0 = waveform0
+  props.waveform1 = waveform1
 
   useEffect(() =>
     {
@@ -156,6 +162,8 @@ export default function App()
           waveformTexture.update(oscNetworkBridge.waveformArray0, oscNetworkBridge.waveformArray1)
           setWaveformRms(waveformTexture.waveformRms);
           setWaveformRmsAccum(waveformTexture.waveformRmsAccum);
+          setWavefrom0(oscNetworkBridge.waveformArray0)
+          setWavefrom1(oscNetworkBridge.waveformArray1)
         })
       }
     
@@ -224,7 +232,7 @@ export default function App()
                   case 'Wah Delay':
                     return <WahDelayEffect {...props} />
                   case 'Pitch Follow':
-                    return <PitchFollowEffect {...props} />
+                    return <PitchFollowLissajousEffect {...props} />
                   default:
                     return null
                 }
