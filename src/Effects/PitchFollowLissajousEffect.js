@@ -25,9 +25,9 @@ function PitchFollowLissajousEffect({ waveform0, waveform1, waveformTex, wavefor
   const { camera, gl } = useThree()
   const ref = useRef()
 
-  useControls(
+  const {size} = useControls(
     {
-      scope_scale_y: { value: 0.5, min: 0, max: 1, step: 0.01, onChange: (value) => { ref.current.iAmplitude = value } },
+      size: { value: 20, min: 1, max: 100, step: 0.01},
     }
   )
 
@@ -40,14 +40,18 @@ function PitchFollowLissajousEffect({ waveform0, waveform1, waveformTex, wavefor
     
     const interleavedArray = new Float32Array(waveform0.length * 3)
     for (let i = 0; i < waveform0.length*3; i++) {
-        interleavedArray[i] = (waveform0[i] * 100.0)
-        interleavedArray[i + 1] = (waveform1[i] * 100.0)
-        interleavedArray[i + 2] = 0
+        interleavedArray[i*3] = waveform0[i] * size
+        interleavedArray[i*3 + 1] = waveform1[i] * size
+        interleavedArray[i*3 + 2] = 0
     }
-   
+
     // if the position array does not exist, initialize it. In a hacky way.
     if (ref.current.geometry.attributes.position === undefined) {
-      const vectorArray0 = waveform0.map((x, index) => new THREE.Vector3(0,0,0));
+      let vectorArray0 =[]
+      for (var i = 0; i< 1024; i++) {
+        vectorArray0.push(new THREE.Vector3(0,0,0))
+      }
+      //const vectorArray0 = waveform0.map((x, index) => new THREE.Vector3(0,0,0));
       ref.current.geometry.setFromPoints(vectorArray0)
     }
     //hopefully, this is faster 
@@ -75,9 +79,9 @@ function PitchFollowLissajousEffect({ waveform0, waveform1, waveformTex, wavefor
       > 
         Pitch Follow Lissajous
       </Text>
-      <line position={[0, -2.5, -10]} ref={ref}>
+      <line position={[0, 0, 0]} ref={ref}>
         <bufferGeometry attach="geometry" />
-        <lineBasicMaterial attach="material" color={'#9c88ff'} linewidth={10} linecap={'round'} linejoin={'round'} />
+        <lineBasicMaterial attach="material" color={'#9c88ff'} linewidth={30} linecap={'round'} linejoin={'round'} />
       </line>
       
     </>
