@@ -157,14 +157,20 @@ SynthDef.new(\wahdelay, { arg out=0, maxdtime=0.2, dtime=0.2, decay=2, gate=1, w
 
  SynthDef.new(\pitchfollow, { |out|
 		var final, freq, hasFreq, phase, trig, partition, fixed_timing_reset_trig;
-		var in = Mix.new(SoundIn.ar([0, 1]));
+		var in = SoundIn.ar(0);
 		var amp = Amplitude.kr(in, 0.05, 0.05);
 		# freq, hasFreq = Pitch.kr(in, ampThreshold: 0.02, median: 7);
 		//freq = Lag.kr(freq.cpsmidi.round(1).midicps, 0.05);
 		final = Mix.new(VarSaw.ar(freq * [0.5, 1, 2], 0, LFNoise1.kr(0.3, 0.1, 0.1), amp));
+		/*
+		// i have no idea why this stops the visualizer from
+		// showing reasonable waveform values...
 		6.do {
 			final = AllpassN.ar(final, 0.040, [0.040.rand,0.040.rand], 2)
 		};
+		*/
+		//final = AllpassN.ar(final, 0.040, [0.040.rand, 0.040.rand]);
+
 		// MACHINERY FOR SAMPLING THE SIGNAL
 		phase = Phasor.ar(0, 1, 0, chunkSize);
 		trig = HPZ1.ar(phase) < 0;
@@ -249,7 +255,7 @@ OSCFunc(
 }, '/setEffect');
 
 // start with the default synth active
-synth = Synth.new(\default);
+synth = Synth.new(\pitchfollow);
 /*
 	TODO: clean up stuff??
 synth.onFree {
