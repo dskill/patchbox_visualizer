@@ -81,7 +81,7 @@ function PitchFollowLissajousEffect({ waveform0, waveform1, waveformTex, wavefor
       </Text>
       <line position={[0, 0, 0]} ref={ref}>
         <bufferGeometry attach="geometry" />
-        <lineBasicMaterial attach="material" color={'#9c88ff'} linewidth={30} linecap={'round'} linejoin={'round'} />
+        <lineBasicMaterial attach="material" color={'white'} linewidth={2} linecap={'round'} linejoin={'round'} />
       </line>
       
     </>
