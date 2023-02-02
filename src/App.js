@@ -4,7 +4,6 @@ import { Leva, useControls } from 'leva'
 //https://github.com/pmndrs/drei/#performance -->
 import { AdaptiveDpr } from '@react-three/drei'
 import { useDrag, useMove} from '@use-gesture/react'
-import { useSpring, animated } from '@react-spring/web'
 
 import { OSCNetworkBridge } from './OSCNetworkBridge.js'
 import { WaveformTexture } from './WaveformTexture'
