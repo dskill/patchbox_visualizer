@@ -5,8 +5,9 @@ const WebSocket = require('ws');
 const OSC = require('osc-js');
 const ip = require("ip");
 
-//const myIP = ip.address();
-const myIP = 'localhost'
+const myIP = ip.address();
+console.log('IP: ' + myIP);
+//const myIP = 'localhost'
 // if myIP is localhost, like below, then things will work w/out wifi
 // otherwise the IP in the browser location bar is wrong and it doesn't
 // this should be fixed at some point. Maybe by using the ip module...
@@ -32,7 +33,7 @@ server.listen(port, function() {
         // skip over internal (i.e.
         return;
       }
-      console.log("server IP: " + iface.address + ":" + port);
+      console.log("express server running on: " + iface.address + ":" + port);
     });
   });
 });
@@ -43,6 +44,15 @@ app.get('/', function(req, res){
   console.log("request: " + req.url);
   console.log("root:", __dirname + "/");
   res.sendFile('index.html', { root: __dirname + "/" } );
+});
+
+// get the IP of this machine
+// due to CORS, it only works from localhost (in the current setup) 
+app.get('/ip', function(req, res){
+  // log the request
+  console.log("request: " + req.url);
+  // respond with the IP in JSON format
+  res.json({ ip: myIP });
 });
 
 //
@@ -60,7 +70,7 @@ let options = {
   },
   // this is this node server, listening to WS messages from the browser
   wsServer: {
-    host: myIP, // 'localhost',    // @param {string} Hostname of WebSocket server
+    host: 'localhost', // 'localhost',    // @param {string} Hostname of WebSocket server
     port: 8080,            // @param {number} Port of WebSocket server
     //secure: true
   },

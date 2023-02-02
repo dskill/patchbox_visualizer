@@ -73,7 +73,12 @@ export default function App()
   })
   
 
-  const [{ currentEffect }, setUI] = useControls(() => ({
+  const [{ currentEffect, ip }, setUI] = useControls(() => ({
+    ip: {
+      value: 'localhost',
+      transient: false,
+      editable: false,      
+    },
     currentEffect: {
       value: 'Distortion',
       transient: false,
@@ -141,6 +146,15 @@ export default function App()
       {
         setConnected(true)
       })
+
+      // get the IP to display
+      console.log("retrieving IP from ", window.location.hostname + '/ip')
+      fetch(window.location.hostname + '/ip')
+      .then( response => response.json())
+      .then(
+        data => props.setUI({ ip: data.ip })
+        );
+
     }, [])
   
   function DebugQuad({tex}) {
