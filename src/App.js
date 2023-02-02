@@ -107,6 +107,7 @@ export default function App()
 
   // TODO: allow server does not work currently.  The issue is that the osc bridge on server.js is only listening to localhost
   // so if you use the IP of the server from a remote machine, the connection fails.  
+  /*
   if (url_param_allow_server != null)
   {
     useControls({
@@ -125,6 +126,7 @@ export default function App()
       }
     })
   }
+  */
 
   let props = {}
   props.waveformTexture = waveformTexture
@@ -183,6 +185,7 @@ export default function App()
     
     const swipe_right = () =>
     {
+      console.log('swipe_right')
       let index = props.effectOptions.indexOf(props.currentEffect) + 1
       if (index > props.effectOptions.length - 1)
       {
@@ -193,6 +196,7 @@ export default function App()
 
     const swipe_left = () =>
     {
+      console.log('swipe_left')
       let index = props.effectOptions.indexOf(props.currentEffect) - 1
       if (index < 0)
       {
@@ -210,7 +214,6 @@ export default function App()
 
     return (
       <>
-        <ThemeProvider theme={theme}>
         <Leva
         //fill // default = false,  true makes the pane fill the parent dom node it's rendered in
         //flat // default = false,  true removes border radius and shadow
@@ -222,11 +225,11 @@ export default function App()
         {connected ?
           <div  {...bind()} style={divStyle}>
             
-            <IconButton size="large" variant="outlined" color="primary" sx={{ display: 'grid', width: 200, height: 200, padding: 1, margin: 2, position: 'absolute', alignItems: 'center', justifyContent: 'center', left: -10, bottom: -10, zIndex: 1,opacity: 0.5 }} onClick={swipe_left}>
+            <IconButton size="large" variant="outlined" color="primary" sx={{ display: 'grid', width: 200, height: 200, padding: 1, margin: 2, position: 'absolute', alignItems: 'center', justifyContent: 'center', left: -10, bottom: -10, zIndex: 1,opacity: 0.1 }} onClick={swipe_left}>
                 <ArrowLeftIcon sx={{ width: 150, height: 150}}/>
             </IconButton>
 
-            <IconButton size="large" variant="outlined" color="primary" sx={{ display: 'grid', width: 200, height: 200, padding: 1, margin: 2, position: 'absolute', alignItems: 'center', justifyContent: 'center', right: -10, bottom: -10, zIndex: 1,opacity: 0.5 }} onClick={swipe_right}>
+            <IconButton size="large" variant="outlined" color="primary" sx={{ display: 'grid', width: 200, height: 200, padding: 1, margin: 2, position: 'absolute', alignItems: 'center', justifyContent: 'center', right: -10, bottom: -10, zIndex: 1,opacity: 0.1 }} onClick={swipe_right}>
                 <ArrowRightIcon sx={{ width: 150, height: 150}}/>
             </IconButton>
 
@@ -258,7 +261,6 @@ export default function App()
           </div>
           : <h1>Connecting...</h1>
         }
-        </ThemeProvider>
       </>
     )
   }

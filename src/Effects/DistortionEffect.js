@@ -66,6 +66,7 @@ function DistortionEffect({ waveformTex, waveformRms, waveformRmsAccum, oscNetwo
     reverbMix: 1.0,
   }
 
+  /*
   // funky math to update params based on touch
   useEffect(() => {
     const updateValues = () => {
@@ -83,6 +84,7 @@ function DistortionEffect({ waveformTex, waveformRms, waveformRmsAccum, oscNetwo
     };
     updateValues();
   }, [touchPos]);
+  */
 
   // send OSC messages only on start
   useEffect(() =>

@@ -28,6 +28,8 @@ function PitchFollowLissajousEffect({ waveform0, waveform1, waveformTex, wavefor
   const {size} = useControls(
     {
       size: { value: 20, min: 1, max: 100, step: 0.01},
+      distortionPreGain: { value: 1, min: 1, max: 200, step: 0.01, onChange: (value) => { oscNetworkBridge.send('distortionPreGain', value) } },
+
     }
   )
 
@@ -65,7 +67,7 @@ function PitchFollowLissajousEffect({ waveform0, waveform1, waveformTex, wavefor
     setDpr(1)
     setUI({ downsample: 4 })
     setUI({ resolution: 256 })
-    oscNetworkBridge.send('setEffect', 'pitchfollow')
+    oscNetworkBridge.send('setEffect', 'scopeDistortion')
   }, [])  // empty array means effect will only be applied once
 
   return (

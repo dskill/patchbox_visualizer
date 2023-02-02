@@ -34,10 +34,12 @@ function ScopeDistortionEffect({ waveformTex, waveformRms, waveformRmsAccum, osc
     ref.current.iWaveformRmsAccum = waveformRmsAccum
   })
 
+  /*
   useEffect(() => 
   {
     set( {distortionPreGain: touchPos[1] * 200.0} )
   }, [touchPos])
+  */
   
   // send OSC messages only on start
   useEffect(() =>
