@@ -18,8 +18,9 @@ const math = {
   lerp: (a, b, t) => a + (b - a) * t,
 }
 
-function DistortionEffect({ waveformTex, waveformRms, waveformRmsAccum, oscNetworkBridge, setDpr, setUI, touchPos, ...global_props })
+function DistortionEffect({ waveformTex, waveformRms, waveformRmsAccum, oscNetworkBridge, setDpr, setUI, ...global_props })
 {
+  //todo: useref()
   let effectParams0 = [0, 0, 0, 0];
   let effectParams1 = [0, 0, 0, 0];
 
@@ -33,6 +34,9 @@ function DistortionEffect({ waveformTex, waveformRms, waveformRmsAccum, oscNetwo
 
   const ref = useRef()
   const { width, height } = useThree((state) => state.viewport)
+  const smoothTouchPos = useRef({x: 0, y: 0})
+  const touchPos = useRef({x: 0, y: 0})
+  const touchPosLerp = .1
 
   // update the uniforms
   useFrame((state, delta) =>
@@ -41,13 +45,17 @@ function DistortionEffect({ waveformTex, waveformRms, waveformRmsAccum, oscNetwo
     ref.current.iWaveformRms = waveformRms
     ref.current.iWaveformRmsAccum = waveformRmsAccum
 
+    // lerp touch pos
+    smoothTouchPos.current.x = math.lerp(smoothTouchPos.current.x, touchPos.current.x, touchPosLerp)
+    smoothTouchPos.current.y = math.lerp(smoothTouchPos.current.y, touchPos.current.y, touchPosLerp)
+
     // update the uniforms
     try
     {
       effectParams0[0] = 0
       effectParams0[1] = 0
       effectParams0[2] = reverbMix.value
-      effectParams0[3] = distortionPreGain.value / 200.0
+      effectParams0[3] = smoothTouchPos.current.y * 1// distortionPreGain.value / 200.0
       effectParams1[0] = delayMix.value
       ref.current.iEffectParams0 = effectParams0
       ref.current.iEffectParams1 = effectParams1
@@ -104,6 +112,17 @@ function DistortionEffect({ waveformTex, waveformRms, waveformRmsAccum, oscNetwo
     oscNetworkBridge.send('delayFeedback', 0)
   }, [])  // empty array means effect will only be applied once
 
+  const onPointerMove = (e) =>
+  {
+    touchPos.current.x = e.uv.x
+    touchPos.current.y = e.uv.y
+  } 
+
+  const onPointerDown = (e) =>
+  {
+    touchPos.current.x = e.uv.x
+    touchPos.current.y = e.uv.y
+  } 
 
   return (
     <>
@@ -115,9 +134,10 @@ function DistortionEffect({ waveformTex, waveformRms, waveformRmsAccum, oscNetwo
       anchorY="middle" // default
     > 
       Distortion + Reverb + Delay
+      {touchPos.current.y}
     </Text>
-    <mesh scale={[width, height, 1]}>
-      <planeGeometry />
+    <mesh scale={[width, height, 1]} onPointerDown={onPointerDown} onPointerMove={onPointerMove}>
+      <planeGeometry/>
       <fullScreenMaterial ref={ref}
         key={FullScreenMaterial.key}
         toneMapped={true}

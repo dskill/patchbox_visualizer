@@ -3,7 +3,6 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { Leva, useControls } from 'leva'
 //https://github.com/pmndrs/drei/#performance -->
 import { AdaptiveDpr } from '@react-three/drei'
-import { useDrag, useMove} from '@use-gesture/react'
 
 import { OSCNetworkBridge } from './OSCNetworkBridge.js'
 import { WaveformTexture } from './WaveformTexture'
@@ -21,33 +20,26 @@ import { IconButton, Button } from '@mui/material';
 import ArrowRightIcon from '@mui/icons-material/ArrowRight';
 import ArrowLeftIcon from '@mui/icons-material/ArrowLeft';
 
-import { ThemeProvider, createTheme } from '@mui/material/styles';
-const theme = createTheme({
-  palette: {
-    primary: {
-      light: '#757ce8',
-      main: '#9b9b9b',
-      dark: '#002884',
-      contrastText: '#fff',
-    },
-    secondary: {
-      light: '#ff7961',
-      main: '#f44336',
-      dark: '#ba000d',
-      contrastText: '#000',
-    },
-  },
-});
 
 let resolution = 512;
 // make sure if we hot reload during development, we don't accidentally make multiple oscNetworkBridge instances
 if (oscNetworkBridge != null)
 {
-  oscNetworkBridge.destroy()  
+  oscNetworkBridge.destroy()
 }
 
 let oscNetworkBridge = new OSCNetworkBridge(resolution, 'localhost');
 let waveformTexture = new WaveformTexture(resolution);
+
+function DebugQuad({ tex })
+{
+  return (
+    <mesh scale={[1, 1, 1]} position={[0, 0, 1]}>
+      <planeGeometry />
+      <meshBasicMaterial color={'white'} map={tex} />
+    </mesh>
+  )
+}
 
 export default function App()
 {
@@ -58,25 +50,17 @@ export default function App()
   const [waveformRmsAccum, setWaveformRmsAccum] = useState([0, 0, 0, 0]);
   const [waveform0, setWavefrom0] = useState([]);
   const [waveform1, setWavefrom1] = useState([]);
-  
+
   const [dpr, setDpr] = useState(1.0)
   const [connected, setConnected] = useState(true)
   const [waveformTex, setWaveformTex] = useState(null)
   const effectOptions = ["Glitch Distortion", "Distortion", "Scope", "Scope Distortion", "Pitch Follow", "Wah Delay"]
-  const [{ x, y }, setXY] = useState({ x: 0, y: 0 })
-  
-  const bind =useDrag(({ down, xy: [x, y] })  => 
-  setXY({ x: x / window.innerWidth, y: 1.0 - y / window.innerHeight }), 
-  {
-    pointer: {touch: true} 
-  })
-  
 
   const [{ currentEffect, ip }, setUI] = useControls(() => ({
     ip: {
       value: 'localhost',
       transient: false,
-      editable: false,      
+      editable: false,
     },
     currentEffect: {
       value: 'Distortion',
@@ -137,80 +121,73 @@ export default function App()
   props.setUI = setUI
   props.waveformTex = waveformTex
   props.effectOptions = effectOptions
-  props.touchPos = [x, y]
   props.waveform0 = waveform0
   props.waveform1 = waveform1
 
   useEffect(() =>
+  {
+    oscNetworkBridge.osc_connection.on('open', () =>
     {
-      oscNetworkBridge.osc_connection.on('open', () =>
-      {
-        setConnected(true)
-      })
+      setConnected(true)
+    })
 
-      // get the IP to display
-      console.log("retrieving IP from ", window.location.hostname + '/ip')
-      fetch(window.location.hostname + '/ip')
-      .then( response => response.json())
+    // get the IP to display
+    console.log("retrieving IP from ", window.location.hostname + '/ip')
+    fetch(window.location.hostname + '/ip')
+      .then(response => response.json())
       .then(
         data => props.setUI({ ip: data.ip })
-        );
+      );
 
-    }, [])
-  
-  function DebugQuad({tex}) {
-    return (
-    <mesh scale={[1 , 1, 1]} position={[0,0,1]}>
-      <planeGeometry />
-      <meshBasicMaterial color={'white'} map={tex} />
-    </mesh>
-    )
-  }
+  }, [])
 
   function UpdateLoop()
-      {
-        useFrame((state, delta, xrFrame) =>
-        {
-          // This function runs at the native refresh rate inside of a shared render-loop
-          oscNetworkBridge.update(delta)
-          oscNetworkBridge.sendQueue();
-          waveformTexture.update(oscNetworkBridge.waveformArray0, oscNetworkBridge.waveformArray1)
-          setWaveformRms(waveformTexture.waveformRms);
-          setWaveformRmsAccum(waveformTexture.waveformRmsAccum);
-          setWavefrom0(oscNetworkBridge.waveformArray0)
-          setWavefrom1(oscNetworkBridge.waveformArray1)
-        })
-      }
-    
-    const swipe_right = () =>
+  {
+    useFrame((state, delta, xrFrame) =>
     {
-      console.log('swipe_right')
-      let index = props.effectOptions.indexOf(props.currentEffect) + 1
-      if (index > props.effectOptions.length - 1)
-      {
-        index = 0
-      }
-      props.setUI({ currentEffect: props.effectOptions[index] })
-    }
+      // This function runs at the native refresh rate inside of a shared render-loop
+      oscNetworkBridge.update(delta)
+      oscNetworkBridge.sendQueue();
+      waveformTexture.update(oscNetworkBridge.waveformArray0, oscNetworkBridge.waveformArray1)
+      setWaveformRms(waveformTexture.waveformRms);
+      setWaveformRmsAccum(waveformTexture.waveformRmsAccum);
+      setWavefrom0(oscNetworkBridge.waveformArray0)
+      setWavefrom1(oscNetworkBridge.waveformArray1)
+    })
+  }
 
-    const swipe_left = () =>
+  const swipe_right = () =>
+  {
+    console.log('swipe_right')
+    let index = props.effectOptions.indexOf(props.currentEffect) + 1
+    if (index > props.effectOptions.length - 1)
     {
-      console.log('swipe_left')
-      let index = props.effectOptions.indexOf(props.currentEffect) - 1
-      if (index < 0)
-      {
-        index = props.effectOptions.length - 1
-      }
-      props.setUI({ currentEffect: props.effectOptions[index] })
+      index = 0
     }
+    props.setUI({ currentEffect: props.effectOptions[index] })
+  }
 
-    const divStyle = {
-      width: '100%',
-      height: '100%',
-      margin: '0px',
-      padding: '0px',
-    };
+  const swipe_left = () =>
+  {
+    console.log('swipe_left')
+    let index = props.effectOptions.indexOf(props.currentEffect) - 1
+    if (index < 0)
+    {
+      index = props.effectOptions.length - 1
+    }
+    props.setUI({ currentEffect: props.effectOptions[index] })
+  }
 
+  const divStyle = {
+    width: '100%',
+    height: '100%',
+    margin: '0px',
+    padding: '0px',
+  };
+
+
+  if (connected)
+  {
     return (
       <>
         <Leva
@@ -221,45 +198,45 @@ export default function App()
         //collapsed // default = false, when true the GUI is collpased
         //hidden={url_param_gui == null} // default = false, when true the GUI is hidden
         />
-        {connected ?
-          <div  {...bind()} style={divStyle}>
-            
-            <IconButton size="large" variant="outlined" color="primary" sx={{ display: 'grid', width: 200, height: 200, padding: 1, margin: 2, position: 'absolute', alignItems: 'center', justifyContent: 'center', left: -10, bottom: -10, zIndex: 1,opacity: 0.1 }} onClick={swipe_left}>
-                <ArrowLeftIcon sx={{ width: 150, height: 150}}/>
-            </IconButton>
+        <div style={divStyle}>
 
-            <IconButton size="large" variant="outlined" color="primary" sx={{ display: 'grid', width: 200, height: 200, padding: 1, margin: 2, position: 'absolute', alignItems: 'center', justifyContent: 'center', right: -10, bottom: -10, zIndex: 1,opacity: 0.1 }} onClick={swipe_right}>
-                <ArrowRightIcon sx={{ width: 150, height: 150}}/>
-            </IconButton>
+          <IconButton size="large" variant="outlined" color="primary" sx={{ display: 'grid', width: 200, height: 200, padding: 1, margin: 2, position: 'absolute', alignItems: 'center', justifyContent: 'center', left: -10, bottom: -10, zIndex: 1, opacity: 0.1 }} onClick={swipe_left}>
+            <ArrowLeftIcon sx={{ width: 150, height: 150 }} />
+          </IconButton>
 
-            <Canvas linear dpr={dpr} /*add click event to canvas*/ >
-              {(() =>
+          <IconButton size="large" variant="outlined" color="primary" sx={{ display: 'grid', width: 200, height: 200, padding: 1, margin: 2, position: 'absolute', alignItems: 'center', justifyContent: 'center', right: -10, bottom: -10, zIndex: 1, opacity: 0.1 }} onClick={swipe_right}>
+            <ArrowRightIcon sx={{ width: 150, height: 150 }} />
+          </IconButton>
+
+          <Canvas linear dpr={dpr} /*add click event to canvas*/ >
+            {(() =>
+            {
+              switch (currentEffect)
               {
-                switch (currentEffect)
-                {
-                  case 'Distortion':
-                    return <DistortionEffect {...props} />
-                  case 'Scope':
-                    return <ScopeEffect {...props} />
-                  case 'Scope Distortion':
-                    return <ScopeDistortionEffect {...props} />
-                  case 'Glitch Distortion':
-                    return <GlitchDistortionEffect {...props} />
-                  case 'Wah Delay':
-                    return <WahDelayEffect {...props} />
-                  case 'Pitch Follow':
-                    return <PitchFollowLissajousEffect {...props} />
-                  default:
-                    return null
-                }
-              })()}
+                case 'Distortion':
+                  return <DistortionEffect {...props} />
+                case 'Scope':
+                  return <ScopeEffect {...props} />
+                case 'Scope Distortion':
+                  return <ScopeDistortionEffect {...props} />
+                case 'Glitch Distortion':
+                  return <GlitchDistortionEffect {...props} />
+                case 'Wah Delay':
+                  return <WahDelayEffect {...props} />
+                case 'Pitch Follow':
+                  return <PitchFollowLissajousEffect {...props} />
+                default:
+                  return null
+              }
+            })()}
 
-        {/*<DebugQuad tex={waveformTex} />*/}
-              <UpdateLoop />
-            </Canvas>
-          </div>
-          : <h1>Connecting...</h1>
-        }
+            {/*<DebugQuad tex={waveformTex} />*/}
+            <UpdateLoop />
+          </Canvas>
+        </div>
       </>
-    )
-  }
+    ) 
+  } else return (
+    <h1>Connecting...</h1>
+  )
+}
