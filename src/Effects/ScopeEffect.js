@@ -4,6 +4,7 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { ScopeMaterial } from './Materials/ScopeMaterial'
 import { useControls } from 'leva'
 import { Text } from "@react-three/drei";
+import { OrbitControls } from '@react-three/drei'
 
 // smoothstep function
 // TODO just use a math module

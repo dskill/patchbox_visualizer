@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
+import { Perf } from 'r3f-perf';
 import { Leva, useControls } from 'leva'
 //https://github.com/pmndrs/drei/#performance -->
 import { AdaptiveDpr } from '@react-three/drei'
@@ -197,6 +198,7 @@ export default function App()
         //hideTitleBar // default = false, hides the GUI header
         //collapsed // default = false, when true the GUI is collpased
         //hidden={url_param_gui == null} // default = false, when true the GUI is hidden
+        //hidden="true"
         />
         <div style={divStyle}>
 
@@ -209,6 +211,7 @@ export default function App()
           </IconButton>
 
           <Canvas linear dpr={dpr} /*add click event to canvas*/ >
+            <Perf position="top-left" minimal="true"/>
             {(() =>
             {
               switch (currentEffect)
