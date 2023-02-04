@@ -13,6 +13,7 @@ import ScopeEffect from './Effects/ScopeEffect'
 import ScopeDistortionEffect from './Effects/ScopeDistortionEffect.js'
 import GlitchDistortionEffect from './Effects/GlitchDistortionEffect.js'
 import PitchFollowEffect from './Effects/PitchFollowEffect.js'
+import BlockTestEffect from './Effects/BlockTestEffect.js'
 import PitchFollowLissajousEffect from './Effects/PitchFollowLissajousEffect.js'
 import WahDelayEffect from './Effects/WahDelayEffect.js'
 
@@ -57,7 +58,7 @@ export default function App()
   const [dpr, setDpr] = useState(1.0)
   const [connected, setConnected] = useState(true)
   const [waveformTex, setWaveformTex] = useState(null)
-  const effectOptions = ["Glitch Distortion", "Distortion", "Scope", "Scope Distortion", "Pitch Follow", "Wah Delay"]
+  const effectOptions = ["Glitch Distortion", "Distortion", "Scope", "Scope Distortion", "Pitch Follow", "Wah Delay", "Block Test"]
 
   const [{ currentEffect, ip }, setUI] = useControls(() => ({
     ip: {
@@ -234,6 +235,8 @@ export default function App()
                   return <WahDelayEffect {...props} />
                 case 'Pitch Follow':
                   return <PitchFollowLissajousEffect {...props} />
+                case 'Block Test':
+                  return <BlockTestEffect {...props} />
                 default:
                   return null
               }

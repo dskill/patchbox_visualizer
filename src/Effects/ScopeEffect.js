@@ -20,7 +20,7 @@ const math = {
 
 function ScopeEffect({ waveformTex, waveformRms, waveformRmsAccum, oscNetworkBridge, setDpr, setUI, ...global_props })
 {
-
+  
   const ref = useRef()
   const { width, height } = useThree((state) => state.viewport)
 

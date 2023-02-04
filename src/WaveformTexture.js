@@ -26,7 +26,7 @@ export class WaveformTexture {
     update( waveformArray0, waveformArray1 ) {
         const size = this.texture.image.width * this.texture.image.height;
 		const data = this.texture.image.data;
-
+    
         // if waveformRmsAccum contains a NaN, set to 0
         // this is from NaN RMS values at startup
         if (isNaN(this.waveformRmsAccum[0])) {
@@ -39,6 +39,8 @@ export class WaveformTexture {
         } else if (isNaN(this.waveformRms[1])) {
             this.waveformRms = [0,0,0,0];
         }
+
+        // TODO: If there is no data, don't do this compute. RMS values become NANs and other bad stuff
         for (let i = 0; i < size; i++)
         {
             // for FFT waveformArray[i * 4 + 1] = math.lerp(waveformArray[i * 4 + 1], Math.abs(waveformArray1[i]) * .02, 0.3);

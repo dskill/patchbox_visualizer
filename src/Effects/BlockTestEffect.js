@@ -26,11 +26,11 @@ function Box(props) {
   const [hovered, hover] = useState(false)
   const [clicked, click] = useState(false)
   // Subscribe this component to the render-loop, rotate the mesh every frame
-  useFrame((state, delta) => (ref.current.rotation.x += delta))
+  useFrame((state, delta) => (ref.current.rotation.x += delta * props.waveformRms * 10))
   // Return the view, these are regular Threejs elements expressed in JSX
   return (
     <mesh
-      {...props}
+      position = {props.position}
       ref={ref}
       scale={clicked ? 1.5 : 1}
       onClick={(event) => click(!clicked)}
@@ -41,19 +41,37 @@ function Box(props) {
     </mesh>
   )
 }
+function BlockTestEffect({ waveformTex, waveformRms, waveformRmsAccum, oscNetworkBridge, setDpr, setUI, ...global_props })
+{
+  
+  //const ref = useRef()
+  const { width, height } = useThree((state) => state.viewport)
+  useControls(
+    {
+     // scope_scale_y: { value: 0.5, min: 0, max: 1, step: 0.01, onChange: (value) => { ref.current.iAmplitude = value } },
+    }
+  )
 
-export function BlockTest() {
+  // send OSC messages only on start
+  useEffect(() =>
+  {
+    setDpr(1)
+    setUI({ downsample: 4 })
+    setUI({ resolution: 256 })
+    oscNetworkBridge.send('setEffect', 'wahdelay')
+  }, [])  // empty array means effect will only be applied once
+
   return (
     <>
       <ambientLight intensity={0.5} />
       <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} />
       <pointLight position={[-10, -10, -10]} />
-      <Box position={[-1.2, 0, 0]} />
-      <Box position={[1.2, 0, 0]} />
+      <Box waveformRms={waveformRms[0]} position={[-1.2, 0, 0]} />
+      <Box waveformRms={waveformRms[1]} position={[1.2, 0, 0]} />
       <OrbitControls />
       </>      
   )
 }
 
 
-export default BlockTest
+export default BlockTestEffect
