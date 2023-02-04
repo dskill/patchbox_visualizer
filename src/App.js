@@ -21,16 +21,18 @@ import { IconButton, Button } from '@mui/material';
 import ArrowRightIcon from '@mui/icons-material/ArrowRight';
 import ArrowLeftIcon from '@mui/icons-material/ArrowLeft';
 
+let oscNetworkBridge
+let waveformTexture
+let resolution = 512
 
-let resolution = 512;
 // make sure if we hot reload during development, we don't accidentally make multiple oscNetworkBridge instances
 if (oscNetworkBridge != null)
 {
   oscNetworkBridge.destroy()
 }
 
-let oscNetworkBridge = new OSCNetworkBridge(resolution, 'localhost');
-let waveformTexture = new WaveformTexture(resolution);
+oscNetworkBridge = new OSCNetworkBridge(resolution, 'localhost');
+waveformTexture = new WaveformTexture(resolution);
 
 function DebugQuad({ tex })
 {
