@@ -71,13 +71,15 @@ export class OSCNetworkBridge
   {
     this.osc_update_timer += deltaTime;
     this.waveform_update_timer += deltaTime;
-    if (this.osc_update_timer > 1.0)
+    if (this.osc_update_timer > .1)
     {
       console.log("OSC SAMPLES: " + this.osc_samples);
       console.log("OSC FPS: " + this.osc_updates / this.osc_update_timer);
       this.osc_update_timer = 0;
       this.osc_updates = 0;
       this.osc_samples = 0;
+      console.log("Sending OSC messages: " + this.queue.length);
+      this.sendQueue();
     }
   }
 

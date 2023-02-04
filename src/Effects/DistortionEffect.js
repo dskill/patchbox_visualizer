@@ -25,9 +25,9 @@ function DistortionEffect({ waveformTex, waveformRms, waveformRmsAccum, oscNetwo
   let effectParams1 = [0, 0, 0, 0];
 
   const [, set] = useControls(() => ({
-    distortionPreGain: { value: 1, min: 1, max: 200, step: 0.01, onChange: (value) => { oscNetworkBridge.send('distortionPreGain', value) } },
-    reverbMix: {  value: 0, min: 0, max: 1, step: 0.01, onChange: (value) => { oscNetworkBridge.send('reverbMix', value) } },
-    delayMix: { value: 0.0, min: 0.0, max: 1.0, step: 0.01, onChange: (value) => { oscNetworkBridge.send('delayMix', value) } },
+    distortionPreGain: { value: 1, min: 1, max: 200, step: 0.01 },
+    reverbMix: {  value: 0, min: 0, max: 1, step: 0.01},
+    delayMix: { value: 0.0, min: 0.0, max: 1.0, step: 0.01 },
     delayTime: {  value: 0.3, min: 0, max: 1, step: 0.01, onChange: (value) => { oscNetworkBridge.send('delayTime', value) } },
     delayFeedback: { value: .5, min: 0, max: 10, step: 0.01, onChange: (value) => { oscNetworkBridge.send('delayFeedback', value) } },
   }))
@@ -35,9 +35,7 @@ function DistortionEffect({ waveformTex, waveformRms, waveformRmsAccum, oscNetwo
   const ref = useRef()
   const { width, height } = useThree((state) => state.viewport)
   const smoothTouchPos = useRef({x: 0, y: 0})
-  const touchPos = useRef({x: 0, y: 0})
-  const touchFeedback = useRef("false")
-  const touchPosLerp = .1
+  const touchPosLerp = .2
 
   // update the uniforms
   useFrame((state, delta) =>
@@ -46,22 +44,33 @@ function DistortionEffect({ waveformTex, waveformRms, waveformRmsAccum, oscNetwo
     ref.current.iWaveformRms = waveformRms
     ref.current.iWaveformRmsAccum = waveformRmsAccum
 
-    touchPos.current.x = state.mouse.x
-    touchPos.current.y = state.mouse.y
     // lerp touch pos
-    smoothTouchPos.current.x = math.lerp(smoothTouchPos.current.x, state.mouse.x*.5 + .5, touchPosLerp)
-    smoothTouchPos.current.y = math.lerp(smoothTouchPos.current.y, state.mouse.y*.5 + .5, touchPosLerp)
+    smoothTouchPos.current.x = math.lerp(smoothTouchPos.current.x, state.mouse.x, touchPosLerp)
+    smoothTouchPos.current.y = math.lerp(smoothTouchPos.current.y, state.mouse.y, touchPosLerp)
+
+    let distortion = Math.max(0, smoothTouchPos.current.y * 200.0)
+    let reverb = Math.abs(smoothTouchPos.current.x)
+    let delay = Math.max(0, -1 * smoothTouchPos.current.y)
+    // map touchPos onto controls
+    set( {distortionPreGain: distortion} )
+    set( {reverbMix: reverb} )
+    set( {delayMix: delay} )
 
     // update the uniforms
     try
     {
       effectParams0[0] = 0
       effectParams0[1] = 0
-      effectParams0[2] = reverbMix.value
-      effectParams0[3] = smoothTouchPos.current.y * 1// distortionPreGain.value / 200.0
-      effectParams1[0] = delayMix.value
+      effectParams0[2] = reverb
+      effectParams0[3] = smoothTouchPos.current.y
+      effectParams1[0] = delay
       ref.current.iEffectParams0 = effectParams0
       ref.current.iEffectParams1 = effectParams1
+
+      oscNetworkBridge.send('distortionPreGain', distortion)
+      oscNetworkBridge.send('reverbMix', reverb)
+      oscNetworkBridge.send('delayMix', delay)
+
     } catch (e)
     {
       console.log("error: ", e)
@@ -76,26 +85,6 @@ function DistortionEffect({ waveformTex, waveformRms, waveformRmsAccum, oscNetwo
   const param_preset_b = {
     reverbMix: 1.0,
   }
-
-  /*
-  // funky math to update params based on touch
-  useEffect(() => {
-    const updateValues = () => {
-      const center_touch = [touchPos[0] - 0.5, touchPos[1] - 0.5]
-      const dist_from_center = Math.sqrt(center_touch[0] * center_touch[0] + center_touch[1] * center_touch[1])
-      const dist_from_center_smooth = math.smoothstep(0, .5, dist_from_center)
-      Object.keys(param_preset_b).forEach((key) => {
-        const value = param_preset_b[key] * dist_from_center_smooth;
-        set({ [key]: value });
-      });
-      Object.keys(param_preset_a).forEach((key) => {
-        const value = param_preset_a[key] * math.smoothstep(0,.4, Math.abs(center_touch[1]));
-        set({ [key]: value });
-      });
-    };
-    updateValues();
-  }, [touchPos]);
-  */
 
   // send OSC messages only on start
   useEffect(() =>
@@ -125,10 +114,7 @@ function DistortionEffect({ waveformTex, waveformRms, waveformRmsAccum, oscNetwo
       anchorX="center" // default
       anchorY="middle" // default
     > 
-      Distortion + Reverb + Delay
-      {touchPos.current.y}
-      {touchFeedback.current}
-      
+      Distortion + Reverb + Delay     
     </Text>
     <mesh scale={[width, height, 1]}>
       <planeGeometry/>

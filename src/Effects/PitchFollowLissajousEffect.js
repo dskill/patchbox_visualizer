@@ -16,6 +16,7 @@ const math = {
     // Evaluate polynomial
     return x * x * (3 - 2 * x)
   },
+  lerp: (a, b, t) => a + (b - a) * t,
 }
 
 function PitchFollowLissajousEffect({ waveform0, waveform1, waveformTex, waveformRms, waveformRmsAccum, oscNetworkBridge, setDpr, setUI, ...global_props })
@@ -24,14 +25,13 @@ function PitchFollowLissajousEffect({ waveform0, waveform1, waveformTex, wavefor
 
   const { camera, gl } = useThree()
   const ref = useRef()
+  const smoothTouchPos = useRef({x: 0, y: 0})
+  const touchPosLerp = .2
 
-  const {size} = useControls(
-    {
-      size: { value: 20, min: 1, max: 100, step: 0.01},
-      distortionPreGain: { value: 1, min: 1, max: 200, step: 0.01, onChange: (value) => { oscNetworkBridge.send('distortionPreGain', value) } },
-
-    }
-  )
+  const [{size}, set] = useControls(() => ({
+    distortionPreGain: { value: 1, min: 1, max: 200, step: 0.01 },
+    size: { value: 20, min: 1, max: 100, step: 0.01},
+  }))
 
   // update the uniforms
   useFrame((state, delta) =>
@@ -40,6 +40,13 @@ function PitchFollowLissajousEffect({ waveform0, waveform1, waveformTex, wavefor
     //ref.current.iWaveformRms = waveformRms
     //ref.current.iWaveformRmsAccum = waveformRmsAccum
     
+    // lerp touch pos
+    smoothTouchPos.current.x = math.lerp(smoothTouchPos.current.x, state.mouse.x, touchPosLerp)
+    smoothTouchPos.current.y = math.lerp(smoothTouchPos.current.y, state.mouse.y, touchPosLerp)
+    let distortion = Math.max(0, smoothTouchPos.current.y * 200.0)
+    set( {distortionPreGain: distortion} )
+    oscNetworkBridge.send('distortionPreGain', distortion)
+
     const interleavedArray = new Float32Array(waveform0.length * 3)
     for (let i = 0; i < waveform0.length*3; i++) {
         interleavedArray[i*3] = waveform0[i] * size

@@ -150,7 +150,9 @@ export default function App()
     {
       // This function runs at the native refresh rate inside of a shared render-loop
       oscNetworkBridge.update(delta)
-      oscNetworkBridge.sendQueue();
+      // right now the osc bridge is sending data every .1 seconds. Help with performance.
+      // but should be smoothed in super collider
+      //oscNetworkBridge.sendQueue();
       waveformTexture.update(oscNetworkBridge.waveformArray0, oscNetworkBridge.waveformArray1)
       setWaveformRms(waveformTexture.waveformRms);
       setWaveformRmsAccum(waveformTexture.waveformRmsAccum);
@@ -186,6 +188,8 @@ export default function App()
     height: '100%',
     margin: '0px',
     padding: '0px',
+    // required to allow touch events to behave
+    touchAction: 'none',
   };
 
 
@@ -212,7 +216,7 @@ export default function App()
             <ArrowRightIcon sx={{ width: 150, height: 150 }} />
           </IconButton>
 
-          <Canvas linear dpr={dpr} /*add click event to canvas*/ >
+          <Canvas linear dpr={dpr}>
             <Perf position="top-left" minimal="true"/>
             {(() =>
             {

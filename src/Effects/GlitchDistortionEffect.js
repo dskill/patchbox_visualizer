@@ -111,9 +111,9 @@ function GlitchDistortionEffect({ waveformTex, waveformRms, waveformRmsAccum, os
   useEffect(() =>
   {
     ref.current.iAmplitude = 1.0;
-    setDpr(.5)
+    setDpr(1)
     setUI({ downsample: 8 })
-    setUI({ resolution: 64 })
+    setUI({ resolution: 128 })
     
     oscNetworkBridge.send('setEffect', 'scopeDistortion')
   }, [])  // empty array means effect will only be applied once
@@ -143,7 +143,7 @@ function GlitchDistortionEffect({ waveformTex, waveformRms, waveformRmsAccum, os
         <Glitch
           delay={[1 - glitchStrength, 1 - glitchStrength]} // min and max glitch delay
           duration={[0.15, .05]} // min and max glitch duration
-          mode={GlitchMode.Mild} // glitch mode
+          mode={GlitchMode.Wild} // glitch mode
           dtSize={30}
           active={glitchStrength > .02}// turn on/off the effect (switches between "mode" prop and GlitchMode.DISABLED)
           strength={[0, glitchStrength]} // min and max glitch strength

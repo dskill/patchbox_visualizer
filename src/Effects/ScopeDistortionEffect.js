@@ -15,6 +15,7 @@ const math = {
     // Evaluate polynomial
     return x * x * (3 - 2 * x)
   },
+  lerp: (a, b, t) => a + (b - a) * t,
 }
 
 function ScopeDistortionEffect({ waveformTex, waveformRms, waveformRmsAccum, oscNetworkBridge, setDpr, setUI, touchPos, ...global_props })
@@ -22,25 +23,27 @@ function ScopeDistortionEffect({ waveformTex, waveformRms, waveformRmsAccum, osc
   const ref = useRef()
   const { width, height } = useThree((state) => state.viewport)
   const [, set] = useControls(() => ({
-      distortionPreGain: { value: 1, min: 1, max: 200, step: 0.01, onChange: (value) => { oscNetworkBridge.send('distortionPreGain', value) } },
-      scope_scale_y: { value: 0.5, min: 0, max: 1, step: 0.01, onChange: (value) => { ref.current.iAmplitude = value } },
+    distortionPreGain: { value: 1, min: 1, max: 200, step: 0.01, onChange: (value) => { oscNetworkBridge.send('distortionPreGain', value) } },
+    scope_scale_y: { value: 0.5, min: 0, max: 1, step: 0.01, onChange: (value) => { ref.current.iAmplitude = value } },
   }))
+
+  const smoothTouchPos = useRef({ x: 0, y: 0 })
+  const touchPosLerp = .2
 
   // update the uniforms
   useFrame((state, delta) =>
   {
+    // lerp touch pos
+    smoothTouchPos.current.x = math.lerp(smoothTouchPos.current.x, state.mouse.x, touchPosLerp)
+    smoothTouchPos.current.y = math.lerp(smoothTouchPos.current.y, state.mouse.y, touchPosLerp)
+    let distortion = Math.max(0, (smoothTouchPos.current.y * .5 + .5) * 200.0)
+    set({ distortionPreGain: distortion })
+
     ref.current.time += delta
     ref.current.iWaveformRms = waveformRms
     ref.current.iWaveformRmsAccum = waveformRmsAccum
   })
 
-  /*
-  useEffect(() => 
-  {
-    set( {distortionPreGain: touchPos[1] * 200.0} )
-  }, [touchPos])
-  */
-  
   // send OSC messages only on start
   useEffect(() =>
   {
@@ -52,24 +55,24 @@ function ScopeDistortionEffect({ waveformTex, waveformRms, waveformRmsAccum, osc
 
   return (
     <>
-     <Text
-      scale={[2, 2, 2]}
-      position={[0, 2.75, 1]}
-      color="gray" // default
-      anchorX="center" // default
-      anchorY="middle" // default
-    > 
-      Scope Distortion
-    </Text>
-    <mesh scale={[width, height, 1]}>
-      <planeGeometry />
-      <scopeMaterial ref={ref}
-        key={ScopeMaterial.key}
-        toneMapped={true}
-        iWaveformTexture0={waveformTex}
-      />
-    </mesh>
-    <Text
+      <Text
+        scale={[2, 2, 2]}
+        position={[0, 2.75, 1]}
+        color="gray" // default
+        anchorX="center" // default
+        anchorY="middle" // default
+      >
+        Scope Distortion
+      </Text>
+      <mesh scale={[width, height, 1]}>
+        <planeGeometry />
+        <scopeMaterial ref={ref}
+          key={ScopeMaterial.key}
+          toneMapped={true}
+          iWaveformTexture0={waveformTex}
+        />
+      </mesh>
+      <Text
         scale={[2, 2, 2]}
         position={[-5, 1, 1]}
         color="gray" // default
