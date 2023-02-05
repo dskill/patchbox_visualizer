@@ -10,15 +10,12 @@ import { Trail, Float, Line, Sphere, Stars } from '@react-three/drei'
 import { EffectComposer, Bloom } from '@react-three/postprocessing'
 
 
-
-
-
 export function BlockTestEffect({ waveformTex, waveformRms, waveformRmsAccum, oscNetworkBridge, setDpr, setUI, ...global_props })
 {
 
   useEffect(() =>
   {
-    setDpr(.25)
+    setDpr(1)
     setUI({ downsample: 4 })
     setUI({ resolution: 256 })
     oscNetworkBridge.send('setEffect', 'wahdelay')
@@ -30,17 +27,15 @@ export function BlockTestEffect({ waveformTex, waveformRms, waveformRmsAccum, os
       <Float speed={10} rotationIntensity={1} floatIntensity={2}>
         <Atom waveformRms={waveformRms} />
       </Float>
-      <Stars saturation={0} count={400} speed={0.5} />
-      <EffectComposer>
-        <Bloom mipmapBlur luminanceThreshold={1} radius={0.7} />
-      </EffectComposer>
+      
+
     </>
   )
 }
 
 function Atom(props)
 {
-  const points = useMemo(() => new THREE.EllipseCurve(0, 0, 3, 1.15, 0, 2 * Math.PI, false, 0).getPoints(100), [])
+  const points = useMemo(() => new THREE.EllipseCurve(0, 0, 3, 1.15, 0, 2 * Math.PI, false, 0).getPoints(10), [])
   return (
     <group {...props}>
       <Line worldUnits points={points} color="turquoise" lineWidth={0.3} />
@@ -49,9 +44,7 @@ function Atom(props)
       <Electron waveformRms={props.waveformRms[0]} position={[0, 0, 0.5]} speed={2} />
       <Electron waveformRms={props.waveformRms[1]} position={[0, 0, 0.5]} rotation={[0, 0, Math.PI / 3]} speed={6.5} />
       <Electron waveformRms={props.waveformRms[1]} position={[0, 0, 0.5]} rotation={[0, 0, -Math.PI / 3]} speed={3} />
-      <Sphere args={[0.55, 64, 64]}>
-        <meshBasicMaterial color={[6, 0.5, 2]} toneMapped={false} />
-      </Sphere>
+
     </group>
   )
 }
@@ -62,9 +55,9 @@ function Electron({ radius = 2.75, waveformRms, speed = 6, ...props })
   const drew = useRef({t: 1})
   useFrame((state) =>
   {
-    let t = state.clock.getElapsedTime() * speed * waveformRms
+    let t = state.clock.getElapsedTime() * speed
     console.log(waveformRms)
-    drew.current.t +=  waveformRms * .1
+    drew.current.t += .1// waveformRms * .1
     t = drew.current.t
     ref.current.position.set(Math.sin(t) * radius, (Math.cos(t) * radius * Math.atan(t)) / Math.PI / 1.25, 0)
   })
