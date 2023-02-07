@@ -53,11 +53,12 @@ function Electron({ radius = 2.75, waveformRms, speed = 6, ...props })
 {
   const ref = useRef()
   const drew = useRef({t: 1})
-  useFrame((state) =>
+  useFrame((state, delta) =>
   {
     let t = state.clock.getElapsedTime() * speed
     console.log(waveformRms)
-    drew.current.t += .1// waveformRms * .1
+    console.log(state.clock.getDelta())
+    drew.current.t += 10 * waveformRms * delta  // waveformRms * .1
     t = drew.current.t
     ref.current.position.set(Math.sin(t) * radius, (Math.cos(t) * radius * Math.atan(t)) / Math.PI / 1.25, 0)
   })
