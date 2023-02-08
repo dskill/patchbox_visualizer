@@ -7,6 +7,7 @@ import { AdaptiveDpr } from '@react-three/drei'
 
 import { OSCNetworkBridge } from './OSCNetworkBridge.js'
 import { WaveformTexture } from './WaveformTexture'
+import { SCBridge } from './SCBridge.js';
 
 import DistortionEffect from './Effects/DistortionEffect'
 import ScopeEffect from './Effects/ScopeEffect'
@@ -22,8 +23,7 @@ import { IconButton, Button } from '@mui/material';
 import ArrowRightIcon from '@mui/icons-material/ArrowRight';
 import ArrowLeftIcon from '@mui/icons-material/ArrowLeft';
 
-let oscNetworkBridge
-let waveformTexture
+let oscNetworkBridge, waveformTexture, scBridge
 let resolution = 512
 
 // make sure if we hot reload during development, we don't accidentally make multiple oscNetworkBridge instances
@@ -34,6 +34,7 @@ if (oscNetworkBridge != null)
 
 oscNetworkBridge = new OSCNetworkBridge(resolution, 'localhost');
 waveformTexture = new WaveformTexture(resolution);
+scBridge = new SCBridge();
 
 function DebugQuad({ tex })
 {
@@ -143,6 +144,7 @@ export default function App()
         data => props.setUI({ ip: data.ip })
       );
 
+    scBridge.send();
   }, [])
 
   function UpdateLoop()
@@ -205,7 +207,7 @@ export default function App()
         //hideTitleBar // default = false, hides the GUI header
         //collapsed // default = false, when true the GUI is collpased
         //hidden={url_param_gui == null} // default = false, when true the GUI is hidden
-        //hidden="true"
+        // hidden="true"
         />
         <div style={divStyle}>
 
@@ -218,7 +220,7 @@ export default function App()
           </IconButton>
 
           <Canvas linear dpr={dpr}>
-            <Perf position="top-left" minimal="true"/>
+            <Perf position="top-left" minimal="true" />
             {(() =>
             {
               switch (currentEffect)
@@ -247,7 +249,7 @@ export default function App()
           </Canvas>
         </div>
       </>
-    ) 
+    )
   } else return (
     <h1>Connecting...</h1>
   )
