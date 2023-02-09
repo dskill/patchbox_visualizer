@@ -4,10 +4,12 @@ const { createServer } = require('http');
 const WebSocket = require('ws');
 const OSC = require('osc-js');
 const ip = require("ip");
-const sc = require("supercolliderjs");
+//const sc = require("supercolliderjs");
 const myIP = ip.address();
 const bodyParser = require('body-parser')
 const { spawn } = require('child_process')
+const request = require('request');
+const fs = require('fs');
 
 console.log('IP: ' + myIP);
 //const myIP = 'localhost'
@@ -24,7 +26,8 @@ const port = 3000;
 app.use(express.static('build'))
 
 // CORS
-app.use(function(req, res, next) {
+app.use(function (req, res, next)
+{
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   next();
@@ -125,22 +128,57 @@ osc.on('open', () =>
   }, 1000)
 })
 
-// SUPERCOLLIDER JS MACHINERY 
-// sclang and scsynth should be on the env path
-const sclang = spawn('sclang', ['sc/main.scd'])
+//
+// Launch sclang 
+//
 
-sclang.stdout.on('data', (data) => {
-  console.log(`stdout: ${data}`)
-})
+const run_sclang = (filepath) =>
+{
+  // sclang and scsynth should be on the env path
+  const sclang = spawn('sclang', [filepath])
 
-sclang.stderr.on('data', (data) => {
-  console.error(`stderr: ${data}`)
-})
+  sclang.stdout.on('data', (data) =>
+  {
+    console.log(`stdout: ${data}`)
+  })
 
-sclang.on('close', (code) => {
-  console.log(`child process exited with code ${code}`)
-})
+  sclang.stderr.on('data', (data) =>
+  {
+    console.error(`stderr: ${data}`)
+  })
 
+  sclang.on('close', (code) =>
+  {
+    console.log(`child process exited with code ${code}`)
+  })
+}
+
+app.post('/upload_and_sclang', (req) =>
+{
+  const downloadPath = './uploads/main.scd';
+  download_and_sclang_file(req.body.filePath, downloadPath);
+  console.log('Running sclang: ', req.body.filePath)
+});
+
+const download_and_sclang_file = (url, downloadPath) => {
+  request.get(url)
+    .on('error', (err) => {
+      console.log(`An error occurred while downloading the file: ${err}`);
+    })
+    .pipe(fs.createWriteStream(downloadPath))
+    .on('finish', () => {
+      console.log(`File has been successfully downloaded to ${downloadPath}`);
+      console.log(`running sclang: ${downloadPath}`);
+      run_sclang(downloadPath);
+    });
+};
+
+//const url = 'http://192.168.50.237:3001/main.scd';
+//download_and_sclang_file(url, downloadPath);
+//run_sclang('uploads/main.scd');
+
+
+// SUPERCOLLIDER JS STUFF
 
 /*
 

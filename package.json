@@ -33,6 +33,7 @@
     "react-router-dom": "^6.6.1",
     "react-scripts": "5.0.1",
     "react-swipeable": "^7.0.0",
+    "request": "^2.88.2",
     "short-uuid": "4.2.0",
     "supercolliderjs": "^1.0.1",
     "three": "^0.139.2",
