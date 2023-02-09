@@ -40,7 +40,7 @@ export class SCBridge
   }
   */
 
-  sendSynthDef(synthDef)
+  sendSynthDef(synthName, synthDef)
   {
     console.log("scSynthDefAddress", this.scSynthDefAddress)
     // post window.location.hostname + '/sclang' to start sclang
@@ -50,7 +50,8 @@ export class SCBridge
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        synthDef: this.exampleSynthDef
+        synthDef: synthDef,
+        synthName: synthName
       })
     })
       .then(response => response.json())

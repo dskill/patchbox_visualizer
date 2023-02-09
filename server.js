@@ -33,30 +33,6 @@ app.use(bodyParser.json())
 
 const server = createServer(app);
 
-// boot up scsynth server
-var scPath;
-if (process.platform === 'win32') {
-  scPath = "C:\\Program Files\\SuperCollider-3.13.0-rc1\\scsynth";
-} else if (process.platform === 'darwin') {
-  scPath = "/Applications/SuperCollider/SuperCollider.app/Contents/Resources/scsynth";
-} else if (process.platform === 'linux') {
-  scPath = "/usr/local/bin/scsynth";
-}
-
-/*
-let scserver = null;
-sc.server.boot({ scsynth: scPath }).then((server) => {
-  scserver = server
-  console.log("scserver", scserver) 
-})
-*/
-/*
-// DOESNT WORK
-sc.lang.boot({debug: false}).then(function(sclang) {
- sclang.executeFile("./test.scd")
-});
-*/
-
 // static express server
 server.listen(port, function ()
 {
@@ -94,33 +70,6 @@ app.get('/ip', function (req, res)
   console.log("request: " + req.url);
   // respond with the IP in JSON format
   res.json({ ip: myIP });
-});
-
-// create a route for posting sclang commands to the server
-app.post('/synthDef', function (req, res)
-{
-  // access the JSON data in the request body
-  var synthDef = req.body.synthDef
-  console.log('synthDef', synthDef)
-  let server = scserver
-  
-  // respond with the IP in JSON format
-  // set the sc path to the supercollider app
-    const def = server.synthDef(
-      "bubbles",
-      synthDef,
-    );
-
-    server.synth(def)
-
-    setInterval(() =>
-    {
-      server.synth(def, {
-        wobble: Math.random() * 10,
-        innerWobble: Math.random() * 16,
-        releaseTime: Math.random() * 4 + 2,
-      });
-    }, 4000);
 });
 
 //
@@ -176,7 +125,8 @@ osc.on('open', () =>
   }, 1000)
 })
 
-
+// SUPERCOLLIDER JS MACHINERY 
+// sclang and scsynth should be on the env path
 const sclang = spawn('sclang', ['sc/main.scd'])
 
 sclang.stdout.on('data', (data) => {
@@ -191,3 +141,61 @@ sclang.on('close', (code) => {
   console.log(`child process exited with code ${code}`)
 })
 
+
+/*
+
+// boot up scsynth server
+var scPath;
+if (process.platform === 'win32') {
+  scPath = "C:\\Program Files\\SuperCollider-3.13.0-rc1\\scsynth";
+} else if (process.platform === 'darwin') {
+  scPath = "/Applications/SuperCollider/SuperCollider.app/Contents/Resources/scsynth";
+} else if (process.platform === 'linux') {
+  scPath = "/usr/local/bin/scsynth";
+}
+
+let scserver = null;
+sc.server.boot({ scsynth: scPath }).then((server) => {
+  scserver = server
+  console.log("scserver", scserver) 
+})
+
+*/
+
+/*
+// DOESNT WORK
+sc.lang.boot({debug: false}).then(function(sclang) {
+    sclang.executeFile("./sc/main.scd")
+});
+
+
+// create a route for posting sclang commands to the server
+// WORKS, but if you send as synthdef, it doesn't seem to have access to
+// other defined variables like the buffers that we use for waveform rendering
+app.post('/synthDef', function (req, res)
+{
+  // access the JSON data in the request body
+  var synthDef = req.body.synthDef
+  var synthName = req.body.synthName
+  console.log('synthDef', synthDef)
+  console.log('synthName', synthName)
+  let server = scserver
+  
+  // respond with the IP in JSON format
+  // set the sc path to the supercollider app
+    const def = server.synthDef(
+      synthName,
+      synthDef,
+    );
+
+    setInterval(() =>
+    {
+      server.synth(def, {
+        wobble: Math.random() * 10,
+        innerWobble: Math.random() * 16,
+        releaseTime: Math.random() * 4 + 2,
+      });
+    }, 4000);
+    
+  });
+*/

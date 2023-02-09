@@ -5,6 +5,10 @@
 //o = Server.default.options;
 //o.inDevice_(ServerOptions.devices[20]);
 //o.outDevice_(ServerOptions.devices[20]);
+
+// give us a fresh start
+Server.killAll();
+
 s.boot;
 (
 s.waitForBoot{
@@ -256,7 +260,7 @@ OSCFunc(
 // start with the default synth active
 synth = Synth.new(\default);
 
-	'hello world'.postln
+'hello world'.postln
 
 /*
 	TODO: clean up stuff??
