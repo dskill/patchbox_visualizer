@@ -1,8 +1,3 @@
-~o = NetAddr.new("127.0.0.1", 9912);    // create the NetAddr
-//~o.sendMsg("/hello", "there");    // send the application the message "hello" with the
-NetAddr.langPort.postln;
-
-
 
 // for windows (focusrite)
 //ServerOptions.devices; // all devices
@@ -10,10 +5,14 @@ NetAddr.langPort.postln;
 //o = Server.default.options;
 //o.inDevice_(ServerOptions.devices[20]);
 //o.outDevice_(ServerOptions.devices[20]);
-
 s.boot;
 (
 s.waitForBoot{
+
+var o = NetAddr.new("127.0.0.1", 9912);    // create the NetAddr
+//~o.sendMsg("/hello", "there");    // send the application the message "hello" with the
+//NetAddr.langPort.postln;
+
 
 // from the wonderful forum post:
 // https://scsynth.org/t/is-it-possible-to-get-the-output-of-a-ugen-as-an-array-of-floats-audio-buffer/6539/14
@@ -193,12 +192,12 @@ OSCdef(\k, { |msg|
 		//data.size.postln;
 		data = data.resamp1(data.size/chunkDownsample);
 		//data.size.postln;
-		~o.sendMsg(\waveform0, *(data.as(Array)));
+		o.sendMsg(\waveform0, *(data.as(Array)));
 	});
 
 	relay_buffer1.getn(partition.asInteger * chunkSize, chunkSize, { |data|
 		data = data.resamp1(data.size/chunkDownsample);
-		~o.sendMsg(\waveform1, *(data.as(Array)));
+		o.sendMsg(\waveform1, *(data.as(Array)));
 	});
 
 }, '/buffer_refresh');
@@ -255,7 +254,10 @@ OSCFunc(
 }, '/setEffect');
 
 // start with the default synth active
-synth = Synth.new(\pitchfollow);
+synth = Synth.new(\default);
+
+	'hello world'.postln
+
 /*
 	TODO: clean up stuff??
 synth.onFree {
@@ -302,7 +304,7 @@ synth.onFree {
 	// for FFT
 	/*
 	relay_buffer2.getn(0, chunkSize, { |data|
-		~o.sendMsg(\waveform1, *(data.as(Array)));
+		o.sendMsg(\waveform1, *(data.as(Array)));
 	});
 	*/
 

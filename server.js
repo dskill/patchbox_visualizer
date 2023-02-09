@@ -38,40 +38,24 @@ var scPath;
 if (process.platform === 'win32') {
   scPath = "C:\\Program Files\\SuperCollider-3.13.0-rc1\\scsynth";
 } else if (process.platform === 'darwin') {
-  scPath = "/Applications/SuperCollider/SuperCollider.app/Contents/MacOS/scsynth";
+  scPath = "/Applications/SuperCollider/SuperCollider.app/Contents/Resources/scsynth";
 } else if (process.platform === 'linux') {
   scPath = "/usr/local/bin/scsynth";
 }
 
-
+/*
 let scserver = null;
 sc.server.boot({ scsynth: scPath }).then((server) => {
   scserver = server
   console.log("scserver", scserver) 
 })
-
-
+*/
 /*
 // DOESNT WORK
 sc.lang.boot({debug: false}).then(function(sclang) {
  sclang.executeFile("./test.scd")
 });
 */
-
-
-const sclang = spawn('sclang', ['sc/main.scd'])
-
-sclang.stdout.on('data', (data) => {
-  console.log(`stdout: ${data}`)
-})
-
-sclang.stderr.on('data', (data) => {
-  console.error(`stderr: ${data}`)
-})
-
-sclang.on('close', (code) => {
-  console.log(`child process exited with code ${code}`)
-})
 
 // static express server
 server.listen(port, function ()
@@ -174,7 +158,7 @@ osc.on('*', message =>
   /*
   console.log('MESSAGE');
   console.log(message);
- 
+  
   if (message.address == "/reverbMix") {
      console.log(message);
   }
@@ -193,4 +177,17 @@ osc.on('open', () =>
 })
 
 
+const sclang = spawn('sclang', ['sc/main.scd'])
+
+sclang.stdout.on('data', (data) => {
+  console.log(`stdout: ${data}`)
+})
+
+sclang.stderr.on('data', (data) => {
+  console.error(`stderr: ${data}`)
+})
+
+sclang.on('close', (code) => {
+  console.log(`child process exited with code ${code}`)
+})
 

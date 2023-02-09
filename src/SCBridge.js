@@ -1,7 +1,7 @@
 export class SCBridge
 {
-  scLangAddress = 'http://192.168.50.237:3000/sclang'
-  scSynthDefAddress = 'http://192.168.50.237:3000/synthDef'
+  scLangAddress =  'http://' + window.location.hostname + ':3000/sclang' // 'http://192.168.50.237:3000/sclang'
+  scSynthDefAddress =  'http://' + window.location.hostname + ':3000/synthDef' //'http://192.168.50.237:3000/synthDef'
 
   exampleSynthDef = `
   SynthDef("bubbles", { arg out=0, wobble=0.4, innerWobble=8, releaseTime=4;
@@ -15,6 +15,9 @@ export class SCBridge
 
   constructor()
   {  
+    // hack for development. Change the port to 3000 no matter what we're on
+   // this.scLangAddress = this.scLangAddress.replace(/:\d+/, ':3000')
+   // this.scSynthDefAddress = this.scSynthDefAddress.replace(/:\d+/, ':3000')
   }
 
   /*
@@ -39,6 +42,7 @@ export class SCBridge
 
   sendSynthDef(synthDef)
   {
+    console.log("scSynthDefAddress", this.scSynthDefAddress)
     // post window.location.hostname + '/sclang' to start sclang
     fetch(this.scSynthDefAddress, {
       method: 'POST',

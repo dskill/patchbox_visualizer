@@ -36,6 +36,7 @@ oscNetworkBridge = new OSCNetworkBridge(resolution, 'localhost');
 waveformTexture = new WaveformTexture(resolution);
 scBridge = new SCBridge();
 
+
 function DebugQuad({ tex })
 {
   return (
@@ -137,14 +138,17 @@ export default function App()
     })
 
     // get the IP to display
-    console.log("retrieving IP from ", window.location.hostname + '/ip')
-    fetch(window.location.hostname + '/ip')
+    console.log("retrieving IP from ", window.location.hostname + ':3000/ip')
+    fetch('http://' + window.location.hostname + ':3000/ip')
       .then(response => response.json())
       .then(
-        data => props.setUI({ ip: data.ip })
+        data => {
+          console.log("got ip:", data.ip)
+          props.setUI({ ip: data.ip })
+        }
       );
 
-    scBridge.send();
+    //scBridge.sendSynthDef();
   }, [])
 
   function UpdateLoop()
